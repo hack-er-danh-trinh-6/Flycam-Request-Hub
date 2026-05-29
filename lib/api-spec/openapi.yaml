@@ -3,13 +3,19 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Flycam Filming Request Platform API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: requests
+    description: Filming request operations
+  - name: queue
+    description: Public queue/leaderboard operations
+  - name: admin
+    description: Admin operations
 paths:
   /healthz:
     get:
@@ -24,6 +30,224 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /requests:
+    post:
+      operationId: createRequest
+      tags: [requests]
+      summary: Submit a filming request
+      description: Submit a new flycam filming request. The user's IP is captured automatically.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FilmingRequestInput"
+      responses:
+        "201":
+          description: Request created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FilmingRequest"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Request already exists for this IP
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /requests/mine:
+    get:
+      operationId: getMyRequest
+      tags: [requests]
+      summary: Get my filming request
+      description: Returns the filming request associated with the caller's IP address.
+      responses:
+        "200":
+          description: User's request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FilmingRequest"
+        "404":
+          description: No request found for this IP
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /queue:
+    get:
+      operationId: getQueue
+      tags: [queue]
+      summary: Get public filming queue
+      description: Returns the list of approved/filming/completed requests in queue order.
+      responses:
+        "200":
+          description: Filming queue
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/QueueEntry"
+
+  /queue/stats:
+    get:
+      operationId: getQueueStats
+      tags: [queue]
+      summary: Get queue statistics
+      description: Returns summary stats for the queue.
+      responses:
+        "200":
+          description: Queue statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QueueStats"
+
+  /admin/requests:
+    get:
+      operationId: adminListRequests
+      tags: [admin]
+      summary: List all filming requests (admin)
+      description: Returns all requests for admin review.
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, approved, filming, completed, rejected]
+          required: false
+      responses:
+        "200":
+          description: All requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FilmingRequest"
+
+  /admin/requests/{id}/approve:
+    patch:
+      operationId: adminApproveRequest
+      tags: [admin]
+      summary: Approve a request (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Request approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FilmingRequest"
+        "404":
+          description: Request not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/requests/{id}/reject:
+    patch:
+      operationId: adminRejectRequest
+      tags: [admin]
+      summary: Reject a request (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FilmingRequest"
+        "404":
+          description: Request not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/requests/{id}/schedule:
+    patch:
+      operationId: adminScheduleRequest
+      tags: [admin]
+      summary: Set scheduled flight time (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScheduleInput"
+      responses:
+        "200":
+          description: Request scheduled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FilmingRequest"
+        "404":
+          description: Request not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/requests/{id}/complete:
+    patch:
+      operationId: adminCompleteRequest
+      tags: [admin]
+      summary: Mark request as complete and provide video URL (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompleteInput"
+      responses:
+        "200":
+          description: Request completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FilmingRequest"
+        "404":
+          description: Request not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +258,146 @@ components:
       required:
         - status
 
+    FilmingRequest:
+      type: object
+      required:
+        - id
+        - name
+        - email
+        - latitude
+        - longitude
+        - locationName
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        locationName:
+          type: string
+        status:
+          type: string
+          enum: [pending, approved, filming, completed, rejected]
+        queuePosition:
+          type: ["integer", "null"]
+        scheduledAt:
+          type: ["string", "null"]
+        videoUrl:
+          type: ["string", "null"]
+        ipAddress:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    FilmingRequestInput:
+      type: object
+      required:
+        - name
+        - email
+        - latitude
+        - longitude
+        - locationName
+      properties:
+        name:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        latitude:
+          type: number
+        longitude:
+          type: number
+        locationName:
+          type: string
+          minLength: 1
+
+    QueueEntry:
+      type: object
+      required:
+        - id
+        - name
+        - locationName
+        - latitude
+        - longitude
+        - status
+        - queuePosition
+        - scheduledAt
+        - videoUrl
+        - createdAt
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        locationName:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        status:
+          type: string
+          enum: [approved, filming, completed]
+        queuePosition:
+          type: ["integer", "null"]
+        scheduledAt:
+          type: ["string", "null"]
+        videoUrl:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    QueueStats:
+      type: object
+      required:
+        - pending
+        - approved
+        - filming
+        - completed
+        - total
+      properties:
+        pending:
+          type: integer
+        approved:
+          type: integer
+        filming:
+          type: integer
+        completed:
+          type: integer
+        total:
+          type: integer
+
+    ScheduleInput:
+      type: object
+      required:
+        - scheduledAt
+      properties:
+        scheduledAt:
+          type: string
+
+    CompleteInput:
+      type: object
+      required:
+        - videoUrl
+      properties:
+        videoUrl:
+          type: string
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
