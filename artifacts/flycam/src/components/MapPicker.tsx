@@ -6,7 +6,7 @@ import {
 import L, { type LatLngBoundsLiteral, type LatLngExpression } from "leaflet";
 import { useGetMapConfig } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
-import { Locate, LoaderCircle } from "lucide-react";
+import { Locate, LoaderCircle, AlertTriangle } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 import "@/lib/leaflet-fix";
 
@@ -49,24 +49,35 @@ function pointInGeoJsonPolygon(pointLat: number, pointLng: number, coords: numbe
 type GeoFeature = { type: "Feature"; geometry: { type: string; coordinates: number[][][] } };
 type GeoPolygon = { type: "Polygon"; coordinates: number[][][] };
 
+function extractCoords(obj: object): number[][][] | null {
+  const z = obj as GeoFeature | GeoPolygon | Record<string, unknown>;
+  if ((z as GeoFeature).type === "Feature") {
+    const geom = (z as GeoFeature).geometry;
+    if (geom?.type === "Polygon") return geom.coordinates;
+  } else if ((z as GeoPolygon).type === "Polygon") {
+    return (z as GeoPolygon).coordinates;
+  }
+  return null;
+}
+
 function isRestricted(lat: number, lng: number, zones: object[]): boolean {
   // Fallback: airport radius check
   if (FALLBACK_ZONES.some((z) => getDistanceMeters(lat, lng, z.lat, z.lng) <= z.radius)) {
     return true;
   }
-  // Admin-drawn no-fly zones (stored as GeoJSON Features or Polygons)
+  // Admin-drawn no-fly zones
   for (const zone of zones) {
-    const z = zone as GeoFeature | GeoPolygon | Record<string, unknown>;
-    let coords: number[][][] | null = null;
-    if ((z as GeoFeature).type === "Feature") {
-      const geom = (z as GeoFeature).geometry;
-      if (geom?.type === "Polygon") coords = geom.coordinates;
-    } else if ((z as GeoPolygon).type === "Polygon") {
-      coords = (z as GeoPolygon).coordinates;
-    }
+    const coords = extractCoords(zone);
     if (coords && pointInGeoJsonPolygon(lat, lng, coords)) return true;
   }
   return false;
+}
+
+function isInsideAllowedZone(lat: number, lng: number, allowedZone: object | null | undefined): boolean {
+  if (!allowedZone) return true; // No zone configured → everywhere is allowed
+  const coords = extractCoords(allowedZone);
+  if (!coords) return true;
+  return pointInGeoJsonPolygon(lat, lng, coords);
 }
 
 // ─── Fly controller ───────────────────────────────────────────────────────────
@@ -91,20 +102,32 @@ function BoundsUpdater({ bounds }: { bounds: LatLngBoundsLiteral | null }) {
 }
 
 // ─── Click-to-select marker ───────────────────────────────────────────────────
-// Uses refs for noFlyZones + callback to avoid stale closures in useMapEvents.
+// Uses refs for zones + callback to avoid stale closures in useMapEvents.
 
 function LocationMarker({
   position,
   zonesRef,
+  allowedZoneRef,
   onSelectRef,
+  onOutsideZone,
 }: {
   position: { lat: number; lng: number } | null;
   zonesRef: React.MutableRefObject<object[]>;
+  allowedZoneRef: React.MutableRefObject<object | null | undefined>;
   onSelectRef: React.MutableRefObject<(lat: number, lng: number, name: string, restricted: boolean) => void>;
+  onOutsideZone: (outside: boolean) => void;
 }) {
   useMapEvents({
     click: (e) => {
       const { lat, lng } = e.latlng;
+
+      // Block selection if outside the configured allowed zone
+      if (!isInsideAllowedZone(lat, lng, allowedZoneRef.current)) {
+        onOutsideZone(true);
+        return;
+      }
+
+      onOutsideZone(false);
       const restricted = isRestricted(lat, lng, zonesRef.current);
       // Reverse geocode, then fire callback
       fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=vi`)
@@ -139,17 +162,22 @@ export function MapPicker({ onLocationSelect }: MapPickerProps) {
   const [myPos, setMyPos] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
   const [locateError, setLocateError] = useState<string | null>(null);
+  const [outsideZone, setOutsideZone] = useState(false);
 
-  // Always-fresh ref to avoid stale closure in LocationMarker's useMapEvents
+  // Always-fresh refs to avoid stale closures in LocationMarker's useMapEvents
   const noFlyZones: object[] = config?.noFlyZones ?? [];
   const zonesRef = useRef<object[]>(noFlyZones);
   zonesRef.current = noFlyZones;
+
+  const allowedZoneRef = useRef<object | null | undefined>(config?.allowedZone);
+  allowedZoneRef.current = config?.allowedZone;
 
   const onSelectRef = useRef<(lat: number, lng: number, name: string, restricted: boolean) => void>(
     (lat, lng, name, res) => { setSelectedPos({ lat, lng }); onLocationSelect(lat, lng, name, res); }
   );
   onSelectRef.current = (lat, lng, name, res) => {
     setSelectedPos({ lat, lng });
+    setOutsideZone(false);
     onLocationSelect(lat, lng, name, res);
   };
 
@@ -199,6 +227,14 @@ export function MapPicker({ onLocationSelect }: MapPickerProps) {
           <span className="text-sm text-muted-foreground">{myPos.lat.toFixed(4)}, {myPos.lng.toFixed(4)}</span>
         )}
       </div>
+
+      {/* Outside-zone warning */}
+      {outsideZone && (
+        <div className="flex items-center gap-2 rounded-md border border-orange-200 bg-orange-50 px-3 py-2 text-sm text-orange-700">
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          <span>Vị trí này nằm ngoài vùng hoạt động. Vui lòng chọn điểm bên trong vùng xanh lá trên bản đồ.</span>
+        </div>
+      )}
 
       {/* Map */}
       <div className="relative h-[360px] w-full rounded-md border overflow-hidden" style={{ touchAction: "none" }}>
@@ -272,7 +308,13 @@ export function MapPicker({ onLocationSelect }: MapPickerProps) {
           )}
 
           {/* Click-to-select — uses refs, never stale */}
-          <LocationMarker position={selectedPos} zonesRef={zonesRef} onSelectRef={onSelectRef} />
+          <LocationMarker
+            position={selectedPos}
+            zonesRef={zonesRef}
+            allowedZoneRef={allowedZoneRef}
+            onSelectRef={onSelectRef}
+            onOutsideZone={setOutsideZone}
+          />
         </MapContainer>
 
         {/* Legend */}
