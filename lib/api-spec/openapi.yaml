@@ -318,6 +318,9 @@ components:
           type: number
         locationName:
           type: string
+        filmingZone:
+          type: ["object", "null"]
+          description: GeoJSON Polygon for the requested filming area
         status:
           type: string
           enum: [pending, approved, filming, completed, rejected]
@@ -356,6 +359,9 @@ components:
         locationName:
           type: string
           minLength: 1
+        filmingZone:
+          type: ["object", "null"]
+          description: GeoJSON Polygon for the requested filming area
 
     QueueEntry:
       type: object

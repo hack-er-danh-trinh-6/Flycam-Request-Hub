@@ -5,6 +5,7 @@
  * Flycam Filming Request Platform API
  * OpenAPI spec version: 0.1.0
  */
+import type { FilmingRequestInputFilmingZone } from './filmingRequestInputFilmingZone';
 
 export interface FilmingRequestInput {
   /** @minLength 1 */
@@ -14,4 +15,9 @@ export interface FilmingRequestInput {
   longitude: number;
   /** @minLength 1 */
   locationName: string;
+  /**
+     * GeoJSON Polygon for the requested filming area
+     * @nullable
+     */
+  filmingZone?: FilmingRequestInputFilmingZone;
 }

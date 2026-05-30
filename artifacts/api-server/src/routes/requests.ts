@@ -28,6 +28,7 @@ function formatRequest(r: typeof filmingRequestsTable.$inferSelect) {
     latitude: r.latitude,
     longitude: r.longitude,
     locationName: r.locationName,
+    filmingZone: r.filmingZone ?? null,
     status: r.status,
     queuePosition: r.queuePosition ?? null,
     scheduledAt: r.scheduledAt ? r.scheduledAt.toISOString() : null,
@@ -71,6 +72,7 @@ router.post("/requests", async (req, res): Promise<void> => {
       latitude: parsed.data.latitude,
       longitude: parsed.data.longitude,
       locationName: parsed.data.locationName,
+      filmingZone: parsed.data.filmingZone ?? null,
       ipAddress: ip,
       status: "pending",
     })

@@ -30,7 +30,10 @@ export const CreateRequestBody = zod.object({
   "email": zod.string().email(),
   "latitude": zod.number(),
   "longitude": zod.number(),
-  "locationName": zod.string().min(1)
+  "locationName": zod.string().min(1),
+  "filmingZone": zod.object({
+
+}).passthrough().nullish().describe('GeoJSON Polygon for the requested filming area')
 })
 
 
@@ -45,6 +48,9 @@ export const GetMyRequestResponse = zod.object({
   "latitude": zod.number(),
   "longitude": zod.number(),
   "locationName": zod.string(),
+  "filmingZone": zod.object({
+
+}).passthrough().nullish().describe('GeoJSON Polygon for the requested filming area'),
   "status": zod.enum(['pending', 'approved', 'filming', 'completed', 'rejected']),
   "queuePosition": zod.number().nullish(),
   "scheduledAt": zod.string().nullish(),
@@ -102,6 +108,9 @@ export const AdminListRequestsResponseItem = zod.object({
   "latitude": zod.number(),
   "longitude": zod.number(),
   "locationName": zod.string(),
+  "filmingZone": zod.object({
+
+}).passthrough().nullish().describe('GeoJSON Polygon for the requested filming area'),
   "status": zod.enum(['pending', 'approved', 'filming', 'completed', 'rejected']),
   "queuePosition": zod.number().nullish(),
   "scheduledAt": zod.string().nullish(),
@@ -127,6 +136,9 @@ export const AdminApproveRequestResponse = zod.object({
   "latitude": zod.number(),
   "longitude": zod.number(),
   "locationName": zod.string(),
+  "filmingZone": zod.object({
+
+}).passthrough().nullish().describe('GeoJSON Polygon for the requested filming area'),
   "status": zod.enum(['pending', 'approved', 'filming', 'completed', 'rejected']),
   "queuePosition": zod.number().nullish(),
   "scheduledAt": zod.string().nullish(),
@@ -151,6 +163,9 @@ export const AdminRejectRequestResponse = zod.object({
   "latitude": zod.number(),
   "longitude": zod.number(),
   "locationName": zod.string(),
+  "filmingZone": zod.object({
+
+}).passthrough().nullish().describe('GeoJSON Polygon for the requested filming area'),
   "status": zod.enum(['pending', 'approved', 'filming', 'completed', 'rejected']),
   "queuePosition": zod.number().nullish(),
   "scheduledAt": zod.string().nullish(),
@@ -179,6 +194,9 @@ export const AdminScheduleRequestResponse = zod.object({
   "latitude": zod.number(),
   "longitude": zod.number(),
   "locationName": zod.string(),
+  "filmingZone": zod.object({
+
+}).passthrough().nullish().describe('GeoJSON Polygon for the requested filming area'),
   "status": zod.enum(['pending', 'approved', 'filming', 'completed', 'rejected']),
   "queuePosition": zod.number().nullish(),
   "scheduledAt": zod.string().nullish(),
@@ -207,6 +225,9 @@ export const AdminCompleteRequestResponse = zod.object({
   "latitude": zod.number(),
   "longitude": zod.number(),
   "locationName": zod.string(),
+  "filmingZone": zod.object({
+
+}).passthrough().nullish().describe('GeoJSON Polygon for the requested filming area'),
   "status": zod.enum(['pending', 'approved', 'filming', 'completed', 'rejected']),
   "queuePosition": zod.number().nullish(),
   "scheduledAt": zod.string().nullish(),

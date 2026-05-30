@@ -9,6 +9,12 @@ export interface HealthStatus {
   status: string;
 }
 
+/**
+ * GeoJSON Polygon for the requested filming area
+ * @nullable
+ */
+export type FilmingRequestFilmingZone = { [key: string]: unknown } | null;
+
 export type FilmingRequestStatus = typeof FilmingRequestStatus[keyof typeof FilmingRequestStatus];
 
 
@@ -27,6 +33,11 @@ export interface FilmingRequest {
   latitude: number;
   longitude: number;
   locationName: string;
+  /**
+     * GeoJSON Polygon for the requested filming area
+     * @nullable
+     */
+  filmingZone?: FilmingRequestFilmingZone;
   status: FilmingRequestStatus;
   /** @nullable */
   queuePosition?: number | null;
@@ -39,6 +50,12 @@ export interface FilmingRequest {
   updatedAt: string;
 }
 
+/**
+ * GeoJSON Polygon for the requested filming area
+ * @nullable
+ */
+export type FilmingRequestInputFilmingZone = { [key: string]: unknown } | null;
+
 export interface FilmingRequestInput {
   /** @minLength 1 */
   name: string;
@@ -47,6 +64,11 @@ export interface FilmingRequestInput {
   longitude: number;
   /** @minLength 1 */
   locationName: string;
+  /**
+     * GeoJSON Polygon for the requested filming area
+     * @nullable
+     */
+  filmingZone?: FilmingRequestInputFilmingZone;
 }
 
 export type QueueEntryStatus = typeof QueueEntryStatus[keyof typeof QueueEntryStatus];

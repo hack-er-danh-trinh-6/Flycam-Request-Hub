@@ -3,7 +3,7 @@ import { useGetQueue, useGetQueueStats, useCreateRequest, getGetMyRequestQueryKe
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { MapPicker } from "@/components/MapPicker";
+import { MapPicker, type LocationSelection } from "@/components/MapPicker";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -33,6 +33,7 @@ export default function Home() {
   const createRequest = useCreateRequest();
 
   const [isRestrictedZone, setIsRestrictedZone] = useState(false);
+  const [filmingZone, setFilmingZone] = useState<object | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -47,7 +48,7 @@ export default function Home() {
 
   const onSubmit = (data: FormValues) => {
     createRequest.mutate(
-      { data },
+      { data: { ...data, filmingZone: filmingZone as Record<string, unknown> | null | undefined } },
       {
         onSuccess: () => {
           toast({
@@ -121,11 +122,12 @@ export default function Home() {
                     <div className="space-y-2">
                       <Label>Filming Location</Label>
                       <MapPicker
-                        onLocationSelect={(lat, lng, name, restricted) => {
-                          form.setValue("latitude", lat);
-                          form.setValue("longitude", lng);
-                          form.setValue("locationName", name, { shouldValidate: true });
-                          setIsRestrictedZone(restricted);
+                        onLocationSelect={(sel) => {
+                          form.setValue("latitude", sel.lat);
+                          form.setValue("longitude", sel.lng);
+                          form.setValue("locationName", sel.locationName, { shouldValidate: true });
+                          setIsRestrictedZone(sel.isRestricted);
+                          setFilmingZone(sel.filmingZone);
                         }}
                       />
                       {isRestrictedZone && (
