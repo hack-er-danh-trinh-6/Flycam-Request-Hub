@@ -340,10 +340,10 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
                               </Button>
                             </>
                           )}
-                          {req.status === "approved" && (
+                          {(req.status === "approved" || req.status === "filming") && (
                             <ScheduleDialog onSchedule={(date) => handleSchedule(req.id, date)} />
                           )}
-                          {req.status === "filming" && (
+                          {(req.status === "approved" || req.status === "filming") && (
                             <CompleteDialog onComplete={(url) => handleComplete(req.id, url)} />
                           )}
                         </div>
