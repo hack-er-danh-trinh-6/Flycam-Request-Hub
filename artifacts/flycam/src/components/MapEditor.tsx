@@ -1,9 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
 import "@geoman-io/leaflet-geoman-free";
 import "@/lib/leaflet-fix";
+import { Button } from "@/components/ui/button";
+import { Locate, LoaderCircle } from "lucide-react";
 
 export interface MapEditorValue {
   allowedZone: object | null;
@@ -23,6 +25,34 @@ export function MapEditor({ initialValue, onChange }: MapEditorProps) {
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
 
+  const [locating, setLocating] = useState(false);
+  const [locateError, setLocateError] = useState<string | null>(null);
+
+  const handleLocate = () => {
+    if (!navigator.geolocation) {
+      setLocateError("Trình duyệt không hỗ trợ định vị");
+      return;
+    }
+    setLocating(true);
+    setLocateError(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        mapRef.current?.flyTo([latitude, longitude], 15, { animate: true, duration: 1.2 });
+        setLocating(false);
+      },
+      (err) => {
+        setLocating(false);
+        setLocateError(
+          err.code === err.PERMISSION_DENIED
+            ? "Chưa cấp quyền định vị"
+            : "Không xác định được vị trí"
+        );
+      },
+      { timeout: 10000, maximumAge: 30000 }
+    );
+  };
+
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
@@ -31,8 +61,7 @@ export function MapEditor({ initialValue, onChange }: MapEditorProps) {
       zoom: 9,
     });
 
-    // CartoDB Voyager — clean, official-looking OSM-based map
-    L.tileLayer(
+    const streetLayer = L.tileLayer(
       "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
       {
         attribution:
@@ -41,14 +70,13 @@ export function MapEditor({ initialValue, onChange }: MapEditorProps) {
       }
     ).addTo(map);
 
-    // Satellite toggle layer
     const satellite = L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
       { attribution: "Tiles &copy; Esri", maxZoom: 19 }
     );
 
     L.control
-      .layers({ "Bản đồ đường phố": L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", { maxZoom: 20 }).addTo(map) as L.TileLayer, "Vệ tinh": satellite })
+      .layers({ "Bản đồ đường phố": streetLayer, "Vệ tinh": satellite })
       .addTo(map);
 
     const noFlyGroup = new L.FeatureGroup().addTo(map);
@@ -95,7 +123,6 @@ export function MapEditor({ initialValue, onChange }: MapEditorProps) {
       removalMode: true,
     });
 
-    // Set draw mode defaults — no-fly zones are red by default
     map.pm.setGlobalOptions({
       pathOptions: {
         color: "#ef4444",
@@ -138,17 +165,30 @@ export function MapEditor({ initialValue, onChange }: MapEditorProps) {
 
   return (
     <div className="space-y-3">
-      {/* Legend */}
-      <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-        <div className="flex items-center gap-2">
+      {/* Toolbar row: locate button + legend */}
+      <div className="flex flex-wrap items-center gap-4">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleLocate}
+          disabled={locating}
+          className="flex items-center gap-2 shrink-0"
+        >
+          {locating
+            ? <LoaderCircle className="w-4 h-4 animate-spin" />
+            : <Locate className="w-4 h-4" />}
+          {locating ? "Đang định vị..." : "Định vị vị trí của tôi"}
+        </Button>
+        {locateError && (
+          <span className="text-sm text-destructive">{locateError}</span>
+        )}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <span className="inline-block w-4 h-4 rounded border-2 border-dashed border-red-500 bg-red-100 flex-shrink-0" />
           <span>Vùng cấm bay — vẽ bằng Polygon / Rectangle / Circle</span>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs bg-muted px-2 py-0.5 rounded font-mono">Xoá</span>
-          <span>Click nút thùng rác để xoá vùng</span>
-        </div>
       </div>
+
       <div
         ref={containerRef}
         className="h-[520px] w-full rounded-md border overflow-hidden"
