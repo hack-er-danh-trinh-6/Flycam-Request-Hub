@@ -129,6 +129,7 @@ export function MapEditor({ initialValue, onChange }: MapEditorProps) {
     map.pm.setGlobalOptions({
       snappable: false,       // disable snapping — less confusing on mobile
       allowSelfIntersection: false,
+      layerGroup: noFlyGroup, // Geoman adds/removes layers directly in this group
       pathOptions: {
         color: "#ef4444",
         fillColor: "#ef4444",
@@ -165,7 +166,7 @@ export function MapEditor({ initialValue, onChange }: MapEditorProps) {
 
     map.on("pm:create", (e) => {
       const layer = e.layer as L.Polygon;
-      // Style the created layer
+      // Style the created layer (layerGroup option already placed it in noFlyGroup)
       if ("setStyle" in layer) {
         (layer as L.Polygon).setStyle({
           color: "#ef4444",
@@ -175,12 +176,11 @@ export function MapEditor({ initialValue, onChange }: MapEditorProps) {
           weight: 2,
         });
       }
-      noFlyGroup.addLayer(layer);
-      map.removeLayer(layer);
       emitChange();
     });
 
     map.on("pm:remove", () => emitChange());
+    noFlyGroup.on("pm:remove", () => emitChange());
     noFlyGroup.on("pm:edit", () => emitChange());
 
     mapRef.current = map;
