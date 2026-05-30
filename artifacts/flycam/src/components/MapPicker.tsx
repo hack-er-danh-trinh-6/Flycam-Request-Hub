@@ -242,15 +242,15 @@ export function MapPicker({ onLocationSelect }: MapPickerProps) {
           center={center}
           zoom={9}
           minZoom={8}
-          maxZoom={18}
+          maxZoom={19}
           maxBounds={bounds}
           maxBoundsViscosity={1.0}
           style={{ height: "100%", width: "100%" }}
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-            maxZoom={20}
+            attribution="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            maxZoom={19}
           />
           <MapController flyRef={flyRef} />
           <BoundsUpdater bounds={bounds} />
