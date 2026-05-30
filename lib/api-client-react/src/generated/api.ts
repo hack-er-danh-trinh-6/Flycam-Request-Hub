@@ -26,6 +26,8 @@ import type {
   FilmingRequest,
   FilmingRequestInput,
   HealthStatus,
+  MapConfig,
+  MapConfigInput,
   QueueEntry,
   QueueStats,
   ScheduleInput
@@ -794,5 +796,154 @@ export const useAdminCompleteRequest = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getAdminCompleteRequestMutationOptions(options));
+    }
+
+export const getGetMapConfigUrl = () => {
+
+
+
+
+  return `/api/map-config`
+}
+
+/**
+ * Returns the allowed flying zone and no-fly zones drawn by the admin.
+ * @summary Get current map configuration
+ */
+export const getMapConfig = async ( options?: RequestInit): Promise<MapConfig> => {
+
+  return customFetch<MapConfig>(getGetMapConfigUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMapConfigQueryKey = () => {
+    return [
+    `/api/map-config`
+    ] as const;
+    }
+
+
+export const getGetMapConfigQueryOptions = <TData = Awaited<ReturnType<typeof getMapConfig>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMapConfig>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMapConfigQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMapConfig>>> = ({ signal }) => getMapConfig({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMapConfig>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMapConfigQueryResult = NonNullable<Awaited<ReturnType<typeof getMapConfig>>>
+export type GetMapConfigQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get current map configuration
+ */
+
+export function useGetMapConfig<TData = Awaited<ReturnType<typeof getMapConfig>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMapConfig>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMapConfigQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAdminSaveMapConfigUrl = () => {
+
+
+
+
+  return `/api/admin/map-config`
+}
+
+/**
+ * @summary Save map configuration (admin)
+ */
+export const adminSaveMapConfig = async (mapConfigInput: MapConfigInput, options?: RequestInit): Promise<MapConfig> => {
+
+  return customFetch<MapConfig>(getAdminSaveMapConfigUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      mapConfigInput,)
+  }
+);}
+
+
+
+
+export const getAdminSaveMapConfigMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminSaveMapConfig>>, TError,{data: BodyType<MapConfigInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminSaveMapConfig>>, TError,{data: BodyType<MapConfigInput>}, TContext> => {
+
+const mutationKey = ['adminSaveMapConfig'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminSaveMapConfig>>, {data: BodyType<MapConfigInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  adminSaveMapConfig(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminSaveMapConfigMutationResult = NonNullable<Awaited<ReturnType<typeof adminSaveMapConfig>>>
+    export type AdminSaveMapConfigMutationBody = BodyType<MapConfigInput>
+    export type AdminSaveMapConfigMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Save map configuration (admin)
+ */
+export const useAdminSaveMapConfig = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminSaveMapConfig>>, TError,{data: BodyType<MapConfigInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminSaveMapConfig>>,
+        TError,
+        {data: BodyType<MapConfigInput>},
+        TContext
+      > => {
+      return useMutation(getAdminSaveMapConfigMutationOptions(options));
     }
 

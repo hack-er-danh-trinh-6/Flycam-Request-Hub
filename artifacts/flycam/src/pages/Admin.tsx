@@ -5,11 +5,15 @@ import {
   useAdminRejectRequest,
   useAdminScheduleRequest,
   useAdminCompleteRequest,
+  useAdminSaveMapConfig,
+  useGetMapConfig,
   getAdminListRequestsQueryKey,
   getGetQueueQueryKey,
   getGetQueueStatsQueryKey,
+  getGetMapConfigQueryKey,
 } from "@workspace/api-client-react";
 import { setAuthTokenGetter } from "@workspace/api-client-react";
+import { MapEditor, type MapEditorValue } from "@/components/MapEditor";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -123,11 +127,81 @@ function AdminLogin({ onSuccess }: { onSuccess: (token: string) => void }) {
   );
 }
 
+// ─── Map Config Tab ───────────────────────────────────────────────────────────
+
+function MapConfigTab() {
+  const { data: config, isLoading } = useGetMapConfig();
+  const saveMapConfig = useAdminSaveMapConfig();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const [editorValue, setEditorValue] = useState<MapEditorValue | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const initialValue: MapEditorValue | undefined = config
+    ? {
+        allowedZone: (config.allowedZone as object | null) ?? null,
+        noFlyZones: (config.noFlyZones as object[]) ?? [],
+      }
+    : undefined;
+
+  const handleSave = () => {
+    if (!editorValue) {
+      toast({ title: "Chưa có thay đổi nào để lưu", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
+    saveMapConfig.mutate(
+      {
+        data: {
+          allowedZone: editorValue.allowedZone as Record<string, unknown> | null | undefined,
+          noFlyZones: editorValue.noFlyZones as Record<string, unknown>[],
+        },
+      },
+      {
+        onSuccess: () => {
+          toast({ title: "Đã lưu cấu hình bản đồ" });
+          queryClient.invalidateQueries({ queryKey: getGetMapConfigQueryKey() });
+        },
+        onError: () => toast({ title: "Lưu thất bại", variant: "destructive" }),
+        onSettled: () => setSaving(false),
+      }
+    );
+  };
+
+  if (isLoading) {
+    return <div className="text-center py-12 text-muted-foreground">Đang tải cấu hình bản đồ...</div>;
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Vùng cấm bay</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Vẽ các vùng cấm bay (màu đỏ) trên bản đồ. Người dùng sẽ được cảnh báo khi chọn vị trí trong vùng này.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <MapEditor key={config?.updatedAt} initialValue={initialValue} onChange={setEditorValue} />
+          <div className="mt-4 flex justify-end">
+            <Button onClick={handleSave} disabled={saving || !editorValue}>
+              {saving ? "Đang lưu..." : "Lưu cấu hình"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 // ─── Main Admin Panel ────────────────────────────────────────────────────────
 
 type StatusTab = "pending" | "approved" | "filming" | "completed" | "rejected" | "all";
+type AdminSection = "requests" | "mapconfig";
 
 function AdminPanel({ onLogout }: { onLogout: () => void }) {
+  const [section, setSection] = useState<AdminSection>("requests");
   const [activeTab, setActiveTab] = useState<StatusTab>("pending");
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -187,88 +261,103 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
         </Button>
       </div>
 
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as StatusTab)}>
-        <TabsList className="mb-4 flex flex-wrap h-auto gap-2">
-          <TabsTrigger value="all">Tất cả</TabsTrigger>
-          <TabsTrigger value="pending">Chờ duyệt</TabsTrigger>
-          <TabsTrigger value="approved">Đã duyệt</TabsTrigger>
-          <TabsTrigger value="filming">Đang quay</TabsTrigger>
-          <TabsTrigger value="completed">Hoàn thành</TabsTrigger>
-          <TabsTrigger value="rejected">Từ chối</TabsTrigger>
+      {/* Top-level section switcher */}
+      <Tabs value={section} onValueChange={(v) => setSection(v as AdminSection)}>
+        <TabsList className="mb-6">
+          <TabsTrigger value="requests">Yêu cầu quay phim</TabsTrigger>
+          <TabsTrigger value="mapconfig">Cấu hình bản đồ</TabsTrigger>
         </TabsList>
 
-        <TabsContent value={activeTab}>
-          {isLoading ? (
-            <div className="text-center py-12 text-muted-foreground">Đang tải...</div>
-          ) : !requests?.length ? (
-            <Card className="py-12 text-center border-dashed">
-              <CardContent>
-                <p className="text-muted-foreground">Không có yêu cầu nào trong mục này.</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {requests.map((req) => (
-                <Card key={req.id} className="flex flex-col" data-testid={`card-request-${req.id}`}>
-                  <CardHeader className="pb-3">
-                    <div className="flex justify-between items-start gap-4">
-                      <CardTitle className="text-base line-clamp-2">{req.locationName}</CardTitle>
-                      <StatusBadge status={req.status} />
-                    </div>
-                  </CardHeader>
-                  <CardContent className="flex-1 flex flex-col space-y-4">
-                    <div className="space-y-1.5 text-sm">
-                      <div className="flex items-center text-muted-foreground">
-                        <User className="w-4 h-4 mr-2 shrink-0" />
-                        <span className="truncate">{req.name}</span>
-                      </div>
-                      <div className="flex items-center text-muted-foreground">
-                        <Mail className="w-4 h-4 mr-2 shrink-0" />
-                        <span className="truncate">{req.email}</span>
-                      </div>
-                      <div className="flex items-center text-muted-foreground">
-                        <MapPin className="w-4 h-4 mr-2 shrink-0" />
-                        {req.latitude.toFixed(4)}, {req.longitude.toFixed(4)}
-                      </div>
-                      {req.scheduledAt && (
-                        <div className="flex items-center font-medium text-foreground">
-                          <Clock className="w-4 h-4 mr-2 shrink-0" />
-                          {format(new Date(req.scheduledAt), "dd/MM/yyyy HH:mm")}
-                        </div>
-                      )}
-                      {req.videoUrl && (
-                        <div className="flex items-center text-primary">
-                          <Video className="w-4 h-4 mr-2 shrink-0" />
-                          <a href={req.videoUrl} target="_blank" rel="noreferrer" className="underline truncate">
-                            Xem video
-                          </a>
-                        </div>
-                      )}
-                    </div>
+        <TabsContent value="requests">
+          {/* Status filter sub-tabs */}
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as StatusTab)}>
+            <TabsList className="mb-4 flex flex-wrap h-auto gap-2">
+              <TabsTrigger value="all">Tất cả</TabsTrigger>
+              <TabsTrigger value="pending">Chờ duyệt</TabsTrigger>
+              <TabsTrigger value="approved">Đã duyệt</TabsTrigger>
+              <TabsTrigger value="filming">Đang quay</TabsTrigger>
+              <TabsTrigger value="completed">Hoàn thành</TabsTrigger>
+              <TabsTrigger value="rejected">Từ chối</TabsTrigger>
+            </TabsList>
 
-                    <div className="mt-auto pt-4 border-t flex flex-wrap gap-2">
-                      {req.status === "pending" && (
-                        <>
-                          <Button size="sm" onClick={() => handleApprove(req.id)} className="flex-1" data-testid={`button-approve-${req.id}`}>
-                            <Check className="w-3.5 h-3.5 mr-1" /> Duyệt
-                          </Button>
-                          <Button size="sm" variant="destructive" onClick={() => handleReject(req.id)} className="flex-1" data-testid={`button-reject-${req.id}`}>
-                            <X className="w-3.5 h-3.5 mr-1" /> Từ chối
-                          </Button>
-                        </>
-                      )}
-                      {req.status === "approved" && (
-                        <ScheduleDialog onSchedule={(date) => handleSchedule(req.id, date)} />
-                      )}
-                      {req.status === "filming" && (
-                        <CompleteDialog onComplete={(url) => handleComplete(req.id, url)} />
-                      )}
-                    </div>
+            <TabsContent value={activeTab}>
+              {isLoading ? (
+                <div className="text-center py-12 text-muted-foreground">Đang tải...</div>
+              ) : !requests?.length ? (
+                <Card className="py-12 text-center border-dashed">
+                  <CardContent>
+                    <p className="text-muted-foreground">Không có yêu cầu nào trong mục này.</p>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
-          )}
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {requests.map((req) => (
+                    <Card key={req.id} className="flex flex-col" data-testid={`card-request-${req.id}`}>
+                      <CardHeader className="pb-3">
+                        <div className="flex justify-between items-start gap-4">
+                          <CardTitle className="text-base line-clamp-2">{req.locationName}</CardTitle>
+                          <StatusBadge status={req.status} />
+                        </div>
+                      </CardHeader>
+                      <CardContent className="flex-1 flex flex-col space-y-4">
+                        <div className="space-y-1.5 text-sm">
+                          <div className="flex items-center text-muted-foreground">
+                            <User className="w-4 h-4 mr-2 shrink-0" />
+                            <span className="truncate">{req.name}</span>
+                          </div>
+                          <div className="flex items-center text-muted-foreground">
+                            <Mail className="w-4 h-4 mr-2 shrink-0" />
+                            <span className="truncate">{req.email}</span>
+                          </div>
+                          <div className="flex items-center text-muted-foreground">
+                            <MapPin className="w-4 h-4 mr-2 shrink-0" />
+                            {req.latitude.toFixed(4)}, {req.longitude.toFixed(4)}
+                          </div>
+                          {req.scheduledAt && (
+                            <div className="flex items-center font-medium text-foreground">
+                              <Clock className="w-4 h-4 mr-2 shrink-0" />
+                              {format(new Date(req.scheduledAt), "dd/MM/yyyy HH:mm")}
+                            </div>
+                          )}
+                          {req.videoUrl && (
+                            <div className="flex items-center text-primary">
+                              <Video className="w-4 h-4 mr-2 shrink-0" />
+                              <a href={req.videoUrl} target="_blank" rel="noreferrer" className="underline truncate">
+                                Xem video
+                              </a>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="mt-auto pt-4 border-t flex flex-wrap gap-2">
+                          {req.status === "pending" && (
+                            <>
+                              <Button size="sm" onClick={() => handleApprove(req.id)} className="flex-1" data-testid={`button-approve-${req.id}`}>
+                                <Check className="w-3.5 h-3.5 mr-1" /> Duyệt
+                              </Button>
+                              <Button size="sm" variant="destructive" onClick={() => handleReject(req.id)} className="flex-1" data-testid={`button-reject-${req.id}`}>
+                                <X className="w-3.5 h-3.5 mr-1" /> Từ chối
+                              </Button>
+                            </>
+                          )}
+                          {req.status === "approved" && (
+                            <ScheduleDialog onSchedule={(date) => handleSchedule(req.id, date)} />
+                          )}
+                          {req.status === "filming" && (
+                            <CompleteDialog onComplete={(url) => handleComplete(req.id, url)} />
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </TabsContent>
+
+        <TabsContent value="mapconfig">
+          <MapConfigTab />
         </TabsContent>
       </Tabs>
     </div>

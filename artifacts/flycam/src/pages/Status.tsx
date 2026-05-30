@@ -12,6 +12,7 @@ export default function Status() {
   const [, setLocation] = useLocation();
   const { data: request, isLoading, isError } = useGetMyRequest({
     query: {
+      queryKey: ["getMyRequest"],
       retry: 1,
     }
   });

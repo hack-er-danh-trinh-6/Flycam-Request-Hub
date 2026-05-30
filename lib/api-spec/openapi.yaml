@@ -16,6 +16,8 @@ tags:
     description: Public queue/leaderboard operations
   - name: admin
     description: Admin operations
+  - name: mapconfig
+    description: Map configuration operations
 paths:
   /healthz:
     get:
@@ -248,6 +250,39 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /map-config:
+    get:
+      operationId: getMapConfig
+      tags: [mapconfig]
+      summary: Get current map configuration
+      description: Returns the allowed flying zone and no-fly zones drawn by the admin.
+      responses:
+        "200":
+          description: Map configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MapConfig"
+
+  /admin/map-config:
+    put:
+      operationId: adminSaveMapConfig
+      tags: [admin]
+      summary: Save map configuration (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MapConfigInput"
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MapConfig"
+
 components:
   schemas:
     HealthStatus:
@@ -393,6 +428,38 @@ components:
       properties:
         videoUrl:
           type: string
+
+    MapConfig:
+      type: object
+      required:
+        - id
+        - noFlyZones
+        - updatedAt
+      properties:
+        id:
+          type: integer
+        allowedZone:
+          type: ["object", "null"]
+          description: GeoJSON Polygon for the allowed flying boundary
+        noFlyZones:
+          type: array
+          items:
+            type: object
+          description: Array of GeoJSON Polygon features for no-fly zones
+        updatedAt:
+          type: string
+
+    MapConfigInput:
+      type: object
+      required:
+        - noFlyZones
+      properties:
+        allowedZone:
+          type: ["object", "null"]
+        noFlyZones:
+          type: array
+          items:
+            type: object
 
     ErrorResponse:
       type: object

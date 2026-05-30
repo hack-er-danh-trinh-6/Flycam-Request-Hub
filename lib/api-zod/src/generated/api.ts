@@ -217,3 +217,43 @@ export const AdminCompleteRequestResponse = zod.object({
 })
 
 
+/**
+ * Returns the allowed flying zone and no-fly zones drawn by the admin.
+ * @summary Get current map configuration
+ */
+export const GetMapConfigResponse = zod.object({
+  "id": zod.number(),
+  "allowedZone": zod.object({
+
+}).passthrough().nullish().describe('GeoJSON Polygon for the allowed flying boundary'),
+  "noFlyZones": zod.array(zod.object({
+
+}).passthrough()).describe('Array of GeoJSON Polygon features for no-fly zones'),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Save map configuration (admin)
+ */
+export const AdminSaveMapConfigBody = zod.object({
+  "allowedZone": zod.object({
+
+}).passthrough().nullish(),
+  "noFlyZones": zod.array(zod.object({
+
+}).passthrough())
+})
+
+export const AdminSaveMapConfigResponse = zod.object({
+  "id": zod.number(),
+  "allowedZone": zod.object({
+
+}).passthrough().nullish().describe('GeoJSON Polygon for the allowed flying boundary'),
+  "noFlyZones": zod.array(zod.object({
+
+}).passthrough()).describe('Array of GeoJSON Polygon features for no-fly zones'),
+  "updatedAt": zod.string()
+})
+
+

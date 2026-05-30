@@ -90,6 +90,39 @@ export interface CompleteInput {
   videoUrl: string;
 }
 
+/**
+ * GeoJSON Polygon for the allowed flying boundary
+ * @nullable
+ */
+export type MapConfigAllowedZone = { [key: string]: unknown } | null;
+
+export type MapConfigNoFlyZonesItem = { [key: string]: unknown };
+
+export interface MapConfig {
+  id: number;
+  /**
+     * GeoJSON Polygon for the allowed flying boundary
+     * @nullable
+     */
+  allowedZone?: MapConfigAllowedZone;
+  /** Array of GeoJSON Polygon features for no-fly zones */
+  noFlyZones: MapConfigNoFlyZonesItem[];
+  updatedAt: string;
+}
+
+/**
+ * @nullable
+ */
+export type MapConfigInputAllowedZone = { [key: string]: unknown } | null;
+
+export type MapConfigInputNoFlyZonesItem = { [key: string]: unknown };
+
+export interface MapConfigInput {
+  /** @nullable */
+  allowedZone?: MapConfigInputAllowedZone;
+  noFlyZones: MapConfigInputNoFlyZonesItem[];
+}
+
 export interface ErrorResponse {
   error: string;
 }

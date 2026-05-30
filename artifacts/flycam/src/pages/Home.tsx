@@ -60,7 +60,7 @@ export default function Home() {
         onError: (err) => {
           toast({
             title: "Failed to submit request",
-            description: err.error || "An unexpected error occurred.",
+            description: (err as { error?: string }).error || "An unexpected error occurred.",
             variant: "destructive",
           });
         },
