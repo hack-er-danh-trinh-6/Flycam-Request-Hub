@@ -11,13 +11,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { Plane, Activity, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
+import { Plane, Activity, CheckCircle2, Clock, AlertTriangle, MapPin } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import type { ApiError } from "@workspace/api-client-react";
 
 const formSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters."),
-  email: z.string().email("Please enter a valid email address."),
-  locationName: z.string().min(1, "Please select a location on the map."),
+  name: z.string().min(2, "Vui lòng nhập tên (ít nhất 2 ký tự)."),
+  email: z.string().email("Vui lòng nhập email hợp lệ."),
+  locationName: z.string().min(1, "Vui lòng chọn vị trí trên bản đồ."),
   latitude: z.number(),
   longitude: z.number(),
 });
@@ -34,6 +35,7 @@ export default function Home() {
 
   const [isRestrictedZone, setIsRestrictedZone] = useState(false);
   const [filmingZone, setFilmingZone] = useState<object | null>(null);
+  const [zoneError, setZoneError] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -47,21 +49,40 @@ export default function Home() {
   });
 
   const onSubmit = (data: FormValues) => {
+    if (!filmingZone) {
+      setZoneError(true);
+      return;
+    }
+    setZoneError(false);
+
     createRequest.mutate(
-      { data: { ...data, filmingZone: filmingZone as Record<string, unknown> | null | undefined } },
+      { data: { ...data, filmingZone: filmingZone as Record<string, unknown> } },
       {
         onSuccess: () => {
           toast({
-            title: "Request submitted!",
-            description: "Your flycam filming request has been recorded.",
+            title: "Đã gửi yêu cầu!",
+            description: "Yêu cầu quay flycam của bạn đã được ghi nhận.",
           });
           queryClient.invalidateQueries({ queryKey: getGetMyRequestQueryKey() });
           setLocation("/status");
         },
         onError: (err) => {
+          const apiErr = err as ApiError;
+
+          if (apiErr.status === 409) {
+            queryClient.invalidateQueries({ queryKey: getGetMyRequestQueryKey() });
+            setLocation("/status");
+            return;
+          }
+
+          const serverMsg =
+            (apiErr.data as { error?: string } | null)?.error ??
+            apiErr.message ??
+            "Đã xảy ra lỗi. Vui lòng thử lại.";
+
           toast({
-            title: "Failed to submit request",
-            description: (err as { error?: string }).error || "An unexpected error occurred.",
+            title: "Không thể gửi yêu cầu",
+            description: serverMsg,
             variant: "destructive",
           });
         },
@@ -76,17 +97,17 @@ export default function Home() {
         <div className="space-y-6">
           <div>
             <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl mb-4">
-              Capture the Sky.
+              Ghi hình từ trên cao.
             </h1>
             <p className="text-lg text-muted-foreground">
-              Request professional drone footage for your favorite locations. Simply pick a spot on the map, and our pilots will handle the rest.
+              Yêu cầu dịch vụ quay flycam chuyên nghiệp tại địa điểm bạn mong muốn. Chọn khu vực trên bản đồ, đội ngũ của chúng tôi sẽ lo phần còn lại.
             </p>
           </div>
 
           <Card className="border-primary/20 shadow-lg shadow-primary/5">
             <CardHeader>
-              <CardTitle>Submit a Request</CardTitle>
-              <CardDescription>Tell us where you want to fly.</CardDescription>
+              <CardTitle>Gửi yêu cầu quay</CardTitle>
+              <CardDescription>Cho chúng tôi biết bạn muốn quay ở đâu.</CardDescription>
             </CardHeader>
             <CardContent>
               <Form {...form}>
@@ -97,9 +118,9 @@ export default function Home() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Your Name</FormLabel>
+                          <FormLabel>Họ và tên</FormLabel>
                           <FormControl>
-                            <Input placeholder="John Doe" {...field} />
+                            <Input placeholder="Nguyễn Văn A" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -110,39 +131,54 @@ export default function Home() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email Address</FormLabel>
+                          <FormLabel>Email</FormLabel>
                           <FormControl>
-                            <Input type="email" placeholder="john@example.com" {...field} />
+                            <Input type="email" placeholder="example@email.com" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    
+
                     <div className="space-y-2">
-                      <Label>Filming Location</Label>
+                      <Label>Khu vực quay</Label>
                       <MapPicker
-                        onLocationSelect={(sel) => {
+                        onLocationSelect={(sel: LocationSelection) => {
                           form.setValue("latitude", sel.lat);
                           form.setValue("longitude", sel.lng);
                           form.setValue("locationName", sel.locationName, { shouldValidate: true });
                           setIsRestrictedZone(sel.isRestricted);
                           setFilmingZone(sel.filmingZone);
+                          setZoneError(false);
                         }}
                       />
+
                       {isRestrictedZone && (
-                        <div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400">
-                          <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                        <div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                           <span>Vị trí này nằm trong vùng cấm bay (gần sân bay). Yêu cầu có thể bị từ chối.</span>
                         </div>
                       )}
+
+                      {zoneError && (
+                        <div className="flex items-start gap-2 rounded-md border border-orange-200 bg-orange-50 px-3 py-2 text-sm text-orange-700">
+                          <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+                          <span>Vui lòng nhấp vào bản đồ để chọn vùng quay trước khi gửi.</span>
+                        </div>
+                      )}
+
                       <FormField
                         control={form.control}
                         name="locationName"
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
-                              <Input readOnly placeholder="Click on the map to select a location..." {...field} className="bg-muted" />
+                              <Input
+                                readOnly
+                                placeholder="Nhấp vào bản đồ để chọn vị trí..."
+                                {...field}
+                                className="bg-muted text-sm"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -151,8 +187,13 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <Button type="submit" className="w-full" size="lg" disabled={createRequest.isPending}>
-                    {createRequest.isPending ? "Submitting..." : "Submit Flight Request"}
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    size="lg"
+                    disabled={createRequest.isPending}
+                  >
+                    {createRequest.isPending ? "Đang gửi..." : "Gửi yêu cầu quay"}
                   </Button>
                 </form>
               </Form>
@@ -169,7 +210,7 @@ export default function Home() {
                   <Activity className="h-6 w-6" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Active Flights</p>
+                  <p className="text-sm font-medium text-muted-foreground">Đang quay</p>
                   <p className="text-3xl font-bold">{queueStats?.filming || 0}</p>
                 </div>
               </CardContent>
@@ -180,7 +221,7 @@ export default function Home() {
                   <Clock className="h-6 w-6" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">In Queue</p>
+                  <p className="text-sm font-medium text-muted-foreground">Đang chờ</p>
                   <p className="text-3xl font-bold">{queueStats?.pending || 0}</p>
                 </div>
               </CardContent>
@@ -189,8 +230,8 @@ export default function Home() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Up Next</CardTitle>
-              <CardDescription>Live look at the flight queue</CardDescription>
+              <CardTitle>Hàng chờ</CardTitle>
+              <CardDescription>Danh sách yêu cầu đang chờ và đang thực hiện</CardDescription>
             </CardHeader>
             <CardContent>
               {queue && queue.length > 0 ? (
@@ -203,20 +244,20 @@ export default function Home() {
                         </div>
                         <div>
                           <p className="font-medium">{entry.locationName}</p>
-                          <p className="text-sm text-muted-foreground">Requested by {entry.name}</p>
+                          <p className="text-sm text-muted-foreground">Yêu cầu bởi {entry.name}</p>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
                         {entry.status === 'filming' ? (
                           <span className="flex items-center text-primary text-sm font-medium">
-                            <Plane className="w-4 h-4 mr-1 animate-pulse" /> Filming Now
+                            <Plane className="w-4 h-4 mr-1 animate-pulse" /> Đang quay
                           </span>
                         ) : entry.status === 'completed' ? (
                           <span className="flex items-center text-green-600 text-sm font-medium">
-                            <CheckCircle2 className="w-4 h-4 mr-1" /> Completed
+                            <CheckCircle2 className="w-4 h-4 mr-1" /> Hoàn thành
                           </span>
                         ) : (
-                          <span className="text-sm text-muted-foreground font-medium">Up Next</span>
+                          <span className="text-sm text-muted-foreground font-medium">Đang chờ</span>
                         )}
                       </div>
                     </div>
@@ -225,7 +266,7 @@ export default function Home() {
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
                   <Plane className="h-12 w-12 mx-auto opacity-20 mb-4" />
-                  <p>The queue is empty. Be the first to request a flight!</p>
+                  <p>Hàng chờ đang trống. Hãy là người đầu tiên gửi yêu cầu!</p>
                 </div>
               )}
             </CardContent>
