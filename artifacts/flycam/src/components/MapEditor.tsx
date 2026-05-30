@@ -239,6 +239,7 @@ export function MapEditor({ initialValue, onChange }: MapEditorProps) {
       <div
         ref={containerRef}
         className="h-[520px] w-full rounded-md border overflow-hidden"
+        style={{ touchAction: "none" }}
       />
 
       {/* Larger touch targets for Geoman toolbar on mobile (CSS injection) */}
