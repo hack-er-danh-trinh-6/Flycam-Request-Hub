@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Circle, Polygon, useMapEvents, Tooltip, useMap } from "react-leaflet";
-import type { LatLngBoundsLiteral, LatLngExpression } from "leaflet";
+import L, { type LatLngBoundsLiteral, type LatLngExpression } from "leaflet";
 import { useGetMapConfig } from "@workspace/api-client-react";
+import { Locate, LoaderCircle } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 import "@/lib/leaflet-fix";
 
@@ -44,10 +45,20 @@ function isInNoFlyZone(lat: number, lng: number, zones: object[]): boolean {
   return false;
 }
 
+// Blue "you are here" dot icon
+const youAreHereIcon = L.divIcon({
+  className: "",
+  html: `<div style="width:18px;height:18px;border-radius:50%;background:#3b82f6;border:3px solid white;box-shadow:0 0 0 2px #3b82f6,0 2px 8px rgba(0,0,0,0.4)"></div>`,
+  iconSize: [18, 18],
+  iconAnchor: [9, 9],
+});
+
 // Fixed airport no-fly zone as fallback
 const FALLBACK_ZONES = [
   { name: "Sân bay Quốc tế Cần Thơ", lat: 10.0853, lng: 105.7118, radius: 8000 },
 ];
+
+// ─── Bounds updater ──────────────────────────────────────────────────────────
 
 function BoundsUpdater({ bounds }: { bounds: LatLngBoundsLiteral | null }) {
   const map = useMap();
@@ -57,15 +68,103 @@ function BoundsUpdater({ bounds }: { bounds: LatLngBoundsLiteral | null }) {
   return null;
 }
 
+// ─── Locate button (inside MapContainer so it can call useMap) ───────────────
+
+function LocateControl({
+  onLocated,
+}: {
+  onLocated: (lat: number, lng: number) => void;
+}) {
+  const map = useMap();
+  const [locating, setLocating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleLocate = () => {
+    if (!navigator.geolocation) {
+      setError("Trình duyệt không hỗ trợ định vị");
+      return;
+    }
+    setLocating(true);
+    setError(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        map.flyTo([latitude, longitude], 14, { animate: true, duration: 1.2 });
+        onLocated(latitude, longitude);
+        setLocating(false);
+      },
+      (err) => {
+        setLocating(false);
+        if (err.code === err.PERMISSION_DENIED) {
+          setError("Bạn chưa cấp quyền định vị");
+        } else {
+          setError("Không thể xác định vị trí");
+        }
+      },
+      { timeout: 8000, maximumAge: 30000 }
+    );
+  };
+
+  return (
+    <div className="leaflet-top leaflet-right" style={{ pointerEvents: "auto" }}>
+      <div className="leaflet-control leaflet-bar" style={{ marginTop: "10px", marginRight: "10px" }}>
+        <button
+          onClick={handleLocate}
+          disabled={locating}
+          title="Định vị vị trí của tôi"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "34px",
+            height: "34px",
+            background: "white",
+            border: "none",
+            cursor: locating ? "default" : "pointer",
+            borderRadius: "4px",
+          }}
+        >
+          {locating ? (
+            <LoaderCircle size={16} className="animate-spin text-blue-500" />
+          ) : (
+            <Locate size={16} className="text-gray-700" />
+          )}
+        </button>
+      </div>
+      {error && (
+        <div
+          style={{
+            marginRight: "10px",
+            background: "white",
+            border: "1px solid #fca5a5",
+            borderRadius: "6px",
+            padding: "6px 10px",
+            fontSize: "12px",
+            color: "#dc2626",
+            maxWidth: "180px",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+          }}
+        >
+          {error}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Click-to-select marker ───────────────────────────────────────────────────
+
 function LocationMarker({
   onLocationSelect,
   noFlyZones,
+  userPosition,
+  setPosition,
 }: {
   onLocationSelect: (lat: number, lng: number, name: string, restricted: boolean) => void;
   noFlyZones: object[];
+  userPosition: { lat: number; lng: number } | null;
+  setPosition: (pos: { lat: number; lng: number }) => void;
 }) {
-  const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
-
   useMapEvents({
     click: async (e) => {
       const { lat, lng } = e.latlng;
@@ -86,15 +185,18 @@ function LocationMarker({
     },
   });
 
-  return position ? <Marker position={position} /> : null;
+  return userPosition ? <Marker position={userPosition} /> : null;
 }
+
+// ─── Main component ───────────────────────────────────────────────────────────
 
 export function MapPicker({ onLocationSelect }: MapPickerProps) {
   const { data: config } = useGetMapConfig();
+  const [selectedPosition, setSelectedPosition] = useState<{ lat: number; lng: number } | null>(null);
+  const [myPosition, setMyPosition] = useState<{ lat: number; lng: number } | null>(null);
 
   const noFlyZones: object[] = config?.noFlyZones ?? [];
 
-  // Derive bounds from allowed zone if available
   let bounds: LatLngBoundsLiteral | null = DEFAULT_BOUNDS;
   let center: LatLngExpression = DEFAULT_CENTER;
 
@@ -121,7 +223,6 @@ export function MapPicker({ onLocationSelect }: MapPickerProps) {
           maxBoundsViscosity={1.0}
           style={{ height: "100%", width: "100%" }}
         >
-          {/* CartoDB Voyager — clean official-looking map */}
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
@@ -130,7 +231,7 @@ export function MapPicker({ onLocationSelect }: MapPickerProps) {
 
           <BoundsUpdater bounds={bounds} />
 
-          {/* Allowed zone boundary (green) */}
+          {/* Allowed zone (green dashed border) */}
           {config?.allowedZone && (() => {
             const az = config.allowedZone as { type?: string; coordinates?: number[][][] };
             if (az.type === "Polygon" && az.coordinates) {
@@ -147,7 +248,7 @@ export function MapPicker({ onLocationSelect }: MapPickerProps) {
             return null;
           })()}
 
-          {/* Custom no-fly zones (red polygons from admin) */}
+          {/* Admin-defined no-fly zones */}
           {noFlyZones.map((zone, i) => {
             const z = zone as { type?: string; geometry?: { type: string; coordinates: number[][][] }; coordinates?: number[][][] };
             const geometry = z.geometry ?? (z.type === "Polygon" ? z : null);
@@ -178,7 +279,30 @@ export function MapPicker({ onLocationSelect }: MapPickerProps) {
             </Circle>
           ))}
 
-          <LocationMarker onLocationSelect={onLocationSelect} noFlyZones={noFlyZones} />
+          {/* Blue "you are here" dot */}
+          {myPosition && (
+            <>
+              <Marker position={myPosition} icon={youAreHereIcon}>
+                <Tooltip permanent direction="top" offset={[0, -12]}>Vị trí của bạn</Tooltip>
+              </Marker>
+              <Circle
+                center={myPosition}
+                radius={60}
+                pathOptions={{ color: "#3b82f6", fillColor: "#93c5fd", fillOpacity: 0.3, weight: 1.5 }}
+              />
+            </>
+          )}
+
+          {/* Selected pin marker */}
+          <LocationMarker
+            onLocationSelect={onLocationSelect}
+            noFlyZones={noFlyZones}
+            userPosition={selectedPosition}
+            setPosition={setSelectedPosition}
+          />
+
+          {/* Locate button (top-right, inside map) */}
+          <LocateControl onLocated={(lat, lng) => setMyPosition({ lat, lng })} />
         </MapContainer>
       </div>
 
@@ -192,6 +316,10 @@ export function MapPicker({ onLocationSelect }: MapPickerProps) {
         <div className="flex items-center gap-2">
           <span className="inline-block w-4 h-3 rounded border-2 border-dashed border-green-500 bg-green-500/20 flex-shrink-0" />
           <span className="text-muted-foreground">Vùng được phép bay</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="inline-block w-3 h-3 rounded-full bg-blue-500 border-2 border-white flex-shrink-0" style={{ boxShadow: "0 0 0 1.5px #3b82f6" }} />
+          <span className="text-muted-foreground">Vị trí của bạn</span>
         </div>
       </div>
     </div>
