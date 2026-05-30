@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useGetQueue, useGetQueueStats, useCreateRequest, getGetMyRequestQueryKey } from "@workspace/api-client-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { Plane, Activity, CheckCircle2, Clock } from "lucide-react";
+import { Plane, Activity, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
 const formSchema = z.object({
@@ -30,6 +31,8 @@ export default function Home() {
   const { data: queueStats } = useGetQueueStats();
   const { data: queue } = useGetQueue();
   const createRequest = useCreateRequest();
+
+  const [isRestrictedZone, setIsRestrictedZone] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -118,12 +121,19 @@ export default function Home() {
                     <div className="space-y-2">
                       <Label>Filming Location</Label>
                       <MapPicker
-                        onLocationSelect={(lat, lng, name) => {
+                        onLocationSelect={(lat, lng, name, restricted) => {
                           form.setValue("latitude", lat);
                           form.setValue("longitude", lng);
                           form.setValue("locationName", name, { shouldValidate: true });
+                          setIsRestrictedZone(restricted);
                         }}
                       />
+                      {isRestrictedZone && (
+                        <div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400">
+                          <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                          <span>Vị trí này nằm trong vùng cấm bay (gần sân bay). Yêu cầu có thể bị từ chối.</span>
+                        </div>
+                      )}
                       <FormField
                         control={form.control}
                         name="locationName"
