@@ -252,7 +252,7 @@ export function MapPicker({ onLocationSelect }: MapPickerProps) {
       )}
 
       {/* Map */}
-      <div className="relative h-[400px] w-full rounded-md border overflow-hidden" style={{ touchAction: center ? "pan-x pan-y" : "none" }}>
+      <div className="relative h-[400px] w-full rounded-md border overflow-hidden" style={{ touchAction: center ? "pan-x pan-y" : "none", isolation: "isolate" }}>
         <MapContainer
           center={mapCenter}
           zoom={9}
