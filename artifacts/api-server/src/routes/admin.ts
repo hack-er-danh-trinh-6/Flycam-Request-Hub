@@ -188,4 +188,25 @@ router.patch("/admin/requests/:id/complete", async (req, res): Promise<void> => 
   res.json(AdminCompleteRequestResponse.parse(formatRequest(updated)));
 });
 
+router.delete("/admin/requests/:id", async (req, res): Promise<void> => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    res.status(400).json({ error: "ID không hợp lệ." });
+    return;
+  }
+
+  const [deleted] = await db
+    .delete(filmingRequestsTable)
+    .where(eq(filmingRequestsTable.id, id))
+    .returning();
+
+  if (!deleted) {
+    res.status(404).json({ error: "Không tìm thấy yêu cầu." });
+    return;
+  }
+
+  await assignQueuePositions();
+  res.status(204).end();
+});
+
 export default router;

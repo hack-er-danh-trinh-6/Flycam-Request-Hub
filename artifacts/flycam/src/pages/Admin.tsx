@@ -23,8 +23,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
-import { MapPin, User, Mail, Clock, Check, X, Plane, Video, Lock, LogOut } from "lucide-react";
+import { MapPin, User, Mail, Clock, Check, X, Plane, Video, Lock, LogOut, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const TOKEN_KEY = "flycam_admin_token";
 
@@ -249,6 +254,21 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
     });
   };
 
+  const handleDelete = async (id: number) => {
+    try {
+      const res = await fetch(`/api/admin/requests/${id}`, { method: "DELETE" });
+      if (res.ok || res.status === 404) {
+        toast({ title: "Đã xóa yêu cầu" });
+        invalidateQueries();
+      } else {
+        const body = await res.json() as { error?: string };
+        toast({ title: "Không thể xóa", description: body.error, variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Lỗi kết nối", variant: "destructive" });
+    }
+  };
+
   return (
     <div className="container max-w-6xl mx-auto py-8 px-4 space-y-8">
       <div className="flex justify-between items-center">
@@ -345,6 +365,32 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
                           )}
                           {(req.status === "approved" || req.status === "filming") && (
                             <CompleteDialog onComplete={(url) => handleComplete(req.id, url)} />
+                          )}
+                          {(req.status === "completed" || req.status === "rejected") && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button size="sm" variant="outline" className="w-full text-destructive border-destructive/30 hover:bg-destructive/10">
+                                  <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Xóa yêu cầu
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Bạn có chắc muốn xóa yêu cầu của <strong>{req.name}</strong> tại <strong>{req.locationName}</strong>? Hành động này không thể hoàn tác.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDelete(req.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Xóa
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           )}
                         </div>
                       </CardContent>
