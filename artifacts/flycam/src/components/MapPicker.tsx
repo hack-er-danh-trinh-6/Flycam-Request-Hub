@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Circle, Polygon, useMapEvents, Tooltip, useMap } from "react-leaflet";
 import L, { type LatLngBoundsLiteral, type LatLngExpression } from "leaflet";
 import { useGetMapConfig } from "@workspace/api-client-react";
-import { Locate, LoaderCircle } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 import "@/lib/leaflet-fix";
 
@@ -68,7 +67,7 @@ function BoundsUpdater({ bounds }: { bounds: LatLngBoundsLiteral | null }) {
   return null;
 }
 
-// ─── Locate button (inside MapContainer so it can call useMap) ───────────────
+// ─── Locate control — uses L.Control so it mounts in the real control pane ───
 
 function LocateControl({
   onLocated,
@@ -76,80 +75,63 @@ function LocateControl({
   onLocated: (lat: number, lng: number) => void;
 }) {
   const map = useMap();
-  const [locating, setLocating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const onLocatedRef = useRef(onLocated);
+  onLocatedRef.current = onLocated;
 
-  const handleLocate = () => {
-    if (!navigator.geolocation) {
-      setError("Trình duyệt không hỗ trợ định vị");
-      return;
-    }
-    setLocating(true);
-    setError(null);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        map.flyTo([latitude, longitude], 14, { animate: true, duration: 1.2 });
-        onLocated(latitude, longitude);
-        setLocating(false);
-      },
-      (err) => {
-        setLocating(false);
-        if (err.code === err.PERMISSION_DENIED) {
-          setError("Bạn chưa cấp quyền định vị");
-        } else {
-          setError("Không thể xác định vị trí");
-        }
-      },
-      { timeout: 8000, maximumAge: 30000 }
-    );
-  };
+  useEffect(() => {
+    const LocateBtn = L.Control.extend({
+      options: { position: "topright" },
+      onAdd() {
+        const container = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+        container.style.cursor = "pointer";
 
-  return (
-    <div className="leaflet-top leaflet-right" style={{ pointerEvents: "auto" }}>
-      <div className="leaflet-control leaflet-bar" style={{ marginTop: "10px", marginRight: "10px" }}>
-        <button
-          onClick={handleLocate}
-          disabled={locating}
-          title="Định vị vị trí của tôi"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "34px",
-            height: "34px",
-            background: "white",
-            border: "none",
-            cursor: locating ? "default" : "pointer",
-            borderRadius: "4px",
-          }}
-        >
-          {locating ? (
-            <LoaderCircle size={16} className="animate-spin text-blue-500" />
-          ) : (
-            <Locate size={16} className="text-gray-700" />
-          )}
-        </button>
-      </div>
-      {error && (
-        <div
-          style={{
-            marginRight: "10px",
-            background: "white",
-            border: "1px solid #fca5a5",
-            borderRadius: "6px",
-            padding: "6px 10px",
-            fontSize: "12px",
-            color: "#dc2626",
-            maxWidth: "180px",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-          }}
-        >
-          {error}
-        </div>
-      )}
-    </div>
-  );
+        const btn = L.DomUtil.create("a", "", container);
+        btn.title = "Định vị vị trí của tôi";
+        btn.href = "#";
+        btn.style.cssText =
+          "display:flex;align-items:center;justify-content:center;width:34px;height:34px;font-size:18px;";
+        btn.innerHTML =
+          `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="9" opacity=".3"/></svg>`;
+
+        L.DomEvent.on(btn, "click", L.DomEvent.stop);
+        L.DomEvent.on(btn, "click", () => {
+          if (!navigator.geolocation) {
+            alert("Trình duyệt không hỗ trợ định vị");
+            return;
+          }
+          btn.innerHTML =
+            `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`;
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              const { latitude, longitude } = pos.coords;
+              map.flyTo([latitude, longitude], 15, { animate: true, duration: 1.2 });
+              onLocatedRef.current(latitude, longitude);
+              btn.innerHTML =
+                `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="9" opacity=".3"/></svg>`;
+            },
+            (err) => {
+              btn.innerHTML =
+                `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="9" opacity=".3"/></svg>`;
+              alert(
+                err.code === err.PERMISSION_DENIED
+                  ? "Bạn chưa cấp quyền định vị cho trang này."
+                  : "Không thể xác định vị trí. Vui lòng thử lại."
+              );
+            },
+            { timeout: 10000, maximumAge: 30000 }
+          );
+        });
+
+        return container;
+      },
+    });
+
+    const ctrl = new LocateBtn();
+    ctrl.addTo(map);
+    return () => { ctrl.remove(); };
+  }, [map]);
+
+  return null;
 }
 
 // ─── Click-to-select marker ───────────────────────────────────────────────────
