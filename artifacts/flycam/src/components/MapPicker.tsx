@@ -1,16 +1,16 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import {
   MapContainer, TileLayer, Circle, Polygon,
-  Tooltip, useMap,
+  Tooltip, useMapEvents, useMap,
 } from "react-leaflet";
 import L, { type LatLngBoundsLiteral, type LatLngExpression } from "leaflet";
 import { useGetMapConfig } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
-import { Locate, LoaderCircle, AlertTriangle, Trash2, CheckCircle } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import { Locate, LoaderCircle, AlertTriangle, Trash2, MapPin } from "lucide-react";
 import "leaflet/dist/leaflet.css";
-import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
-import "@geoman-io/leaflet-geoman-free";
 import "@/lib/leaflet-fix";
+import { useEffect } from "react";
 
 export interface LocationSelection {
   lat: number;
@@ -26,7 +26,6 @@ interface MapPickerProps {
 
 const DEFAULT_CENTER: LatLngExpression = [9.9, 105.65];
 const DEFAULT_BOUNDS: LatLngBoundsLiteral = [[9.15, 104.75], [10.55, 106.25]];
-const ZONE_STYLE = { color: "#3b82f6", fillColor: "#3b82f6", fillOpacity: 0.25, weight: 2.5 };
 
 const FALLBACK_ZONES = [
   { name: "Sân bay Quốc tế Cần Thơ", lat: 10.0853, lng: 105.7118, radius: 8000 },
@@ -85,15 +84,9 @@ function isInsideAllowedZone(lat: number, lng: number, allowedZone: object | nul
   return pointInGeoJsonPolygon(lat, lng, coords);
 }
 
-function polygonCentroid(latlngs: L.LatLng[]): [number, number] {
-  const lat = latlngs.reduce((s, p) => s + p.lat, 0) / latlngs.length;
-  const lng = latlngs.reduce((s, p) => s + p.lng, 0) / latlngs.length;
-  return [lat, lng];
-}
-
 // ─── Fly + bounds controllers ─────────────────────────────────────────────────
 
-function MapController({ flyRef }: { flyRef: React.MutableRefObject<((lat: number, lng: number) => void) | null> }) {
+function FlyController({ flyRef }: { flyRef: React.MutableRefObject<((lat: number, lng: number) => void) | null> }) {
   const map = useMap();
   useEffect(() => {
     flyRef.current = (lat, lng) => map.flyTo([lat, lng], 15, { animate: true, duration: 1.2 });
@@ -110,130 +103,28 @@ function BoundsUpdater({ bounds }: { bounds: LatLngBoundsLiteral | null }) {
   return null;
 }
 
-// ─── Zone drawer (Geoman inside react-leaflet) ────────────────────────────────
+// ─── Tap-to-place handler ─────────────────────────────────────────────────────
 
-function ZoneDrawer({
-  zonesRef,
+function TapHandler({
   allowedZoneRef,
-  onZoneReady,
-  onOutsideZone,
-  clearSignal,
-  onDrawingChange,
+  onTap,
 }: {
-  zonesRef: React.MutableRefObject<object[]>;
   allowedZoneRef: React.MutableRefObject<object | null | undefined>;
-  onZoneReady: (sel: LocationSelection) => void;
-  onOutsideZone: (outside: boolean) => void;
-  clearSignal: number;
-  onDrawingChange: (drawing: boolean) => void;
+  onTap: (lat: number, lng: number, inside: boolean) => void;
 }) {
-  const map = useMap();
-  const zoneGroupRef = useRef<L.FeatureGroup | null>(null);
-  const drawnLayerRef = useRef<L.Polygon | null>(null);
-
-  // Set up Geoman once
-  useEffect(() => {
-    const zoneGroup = new L.FeatureGroup().addTo(map);
-    zoneGroupRef.current = zoneGroup;
-
-    map.pm.addControls({
-      position: "topleft",
-      drawMarker: false,
-      drawCircleMarker: false,
-      drawPolyline: false,
-      drawText: false,
-      drawCircle: false,
-      drawRectangle: true,
-      drawPolygon: true,
-      editMode: false,
-      dragMode: false,
-      cutPolygon: false,
-      removalMode: false,
-    });
-
-    map.pm.setGlobalOptions({
-      snappable: false,
-      allowSelfIntersection: false,
-      layerGroup: zoneGroup,
-      pathOptions: ZONE_STYLE,
-    });
-
-    map.on("pm:drawstart", () => {
-      map.dragging.disable();
-      map.touchZoom.disable();
-      map.doubleClickZoom.disable();
-      onDrawingChange(true);
-    });
-
-    map.on("pm:drawend", () => {
-      map.dragging.enable();
-      map.touchZoom.enable();
-      map.doubleClickZoom.enable();
-      onDrawingChange(false);
-    });
-
-    map.on("pm:create", (e) => {
-      const layer = e.layer as L.Polygon;
-
-      // Remove previous drawn zone
-      if (drawnLayerRef.current) zoneGroup.removeLayer(drawnLayerRef.current);
-      drawnLayerRef.current = layer;
-      layer.setStyle(ZONE_STYLE);
-
-      const rawLatlngs = layer.getLatLngs();
-      const latlngs = (Array.isArray(rawLatlngs[0]) ? rawLatlngs[0] : rawLatlngs) as L.LatLng[];
-      const [centLat, centLng] = polygonCentroid(latlngs);
-
-      if (!isInsideAllowedZone(centLat, centLng, allowedZoneRef.current)) {
-        onOutsideZone(true);
-        return;
-      }
-      onOutsideZone(false);
-
-      const restricted = isRestricted(centLat, centLng, zonesRef.current);
-      const zoneGeoJson = (layer.toGeoJSON() as GeoJSON.Feature).geometry;
-
-      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${centLat}&lon=${centLng}&accept-language=vi`)
-        .then((r) => r.json() as Promise<{ display_name?: string }>)
-        .then((data) => {
-          onZoneReady({ lat: centLat, lng: centLng, locationName: data.display_name ?? `${centLat.toFixed(5)}, ${centLng.toFixed(5)}`, isRestricted: restricted, filmingZone: zoneGeoJson });
-        })
-        .catch(() => {
-          onZoneReady({ lat: centLat, lng: centLng, locationName: `${centLat.toFixed(5)}, ${centLng.toFixed(5)}`, isRestricted: restricted, filmingZone: zoneGeoJson });
-        });
-    });
-
-    return () => {
-      map.pm.removeControls();
-      zoneGroup.remove();
-      map.off("pm:drawstart");
-      map.off("pm:drawend");
-      map.off("pm:create");
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map]);
-
-  // Clear signal from parent
-  useEffect(() => {
-    if (clearSignal > 0 && zoneGroupRef.current) {
-      zoneGroupRef.current.clearLayers();
-      drawnLayerRef.current = null;
-    }
-  }, [clearSignal]);
-
+  useMapEvents({
+    click: (e) => {
+      const { lat, lng } = e.latlng;
+      const inside = isInsideAllowedZone(lat, lng, allowedZoneRef.current);
+      onTap(lat, lng, inside);
+    },
+  });
   return null;
 }
 
-// ─── Blue dot icon ────────────────────────────────────────────────────────────
-
-const youAreHereIcon = L.divIcon({
-  className: "",
-  html: `<div style="width:18px;height:18px;border-radius:50%;background:#3b82f6;border:3px solid white;box-shadow:0 0 0 2px #3b82f6,0 2px 8px rgba(0,0,0,0.4)"></div>`,
-  iconSize: [18, 18],
-  iconAnchor: [9, 9],
-});
-
 // ─── Main component ───────────────────────────────────────────────────────────
+
+const RADIUS_OPTIONS = [100, 200, 300, 500, 750, 1000, 1500, 2000, 3000];
 
 export function MapPicker({ onLocationSelect }: MapPickerProps) {
   const { data: config } = useGetMapConfig();
@@ -242,10 +133,11 @@ export function MapPicker({ onLocationSelect }: MapPickerProps) {
   const [myPos, setMyPos] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
   const [locateError, setLocateError] = useState<string | null>(null);
+
+  const [center, setCenter] = useState<{ lat: number; lng: number } | null>(null);
+  const [radiusIdx, setRadiusIdx] = useState(3); // default 500 m
   const [outsideZone, setOutsideZone] = useState(false);
-  const [hasZone, setHasZone] = useState(false);
-  const [drawing, setDrawing] = useState(false);
-  const [clearSignal, setClearSignal] = useState(0);
+  const [geocoding, setGeocoding] = useState(false);
 
   const noFlyZones: object[] = config?.noFlyZones ?? [];
   const zonesRef = useRef<object[]>(noFlyZones);
@@ -253,6 +145,44 @@ export function MapPicker({ onLocationSelect }: MapPickerProps) {
 
   const allowedZoneRef = useRef<object | null | undefined>(config?.allowedZone);
   allowedZoneRef.current = config?.allowedZone;
+
+  const radius = RADIUS_OPTIONS[radiusIdx];
+
+  const fireCallback = useCallback((lat: number, lng: number, r: number) => {
+    const restricted = isRestricted(lat, lng, zonesRef.current);
+    const filmingZone = { type: "Circle", coordinates: [lng, lat], radius: r };
+    setGeocoding(true);
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=vi`)
+      .then((res) => res.json() as Promise<{ display_name?: string }>)
+      .then((data) => {
+        onLocationSelect({ lat, lng, locationName: data.display_name ?? `${lat.toFixed(5)}, ${lng.toFixed(5)}`, isRestricted: restricted, filmingZone });
+      })
+      .catch(() => {
+        onLocationSelect({ lat, lng, locationName: `${lat.toFixed(5)}, ${lng.toFixed(5)}`, isRestricted: restricted, filmingZone });
+      })
+      .finally(() => setGeocoding(false));
+  }, [onLocationSelect]);
+
+  const handleTap = useCallback((lat: number, lng: number, inside: boolean) => {
+    if (!inside) {
+      setOutsideZone(true);
+      return;
+    }
+    setOutsideZone(false);
+    setCenter({ lat, lng });
+    fireCallback(lat, lng, RADIUS_OPTIONS[radiusIdx]);
+  }, [fireCallback, radiusIdx]);
+
+  const handleRadiusChange = (vals: number[]) => {
+    const idx = vals[0];
+    setRadiusIdx(idx);
+    if (center) fireCallback(center.lat, center.lng, RADIUS_OPTIONS[idx]);
+  };
+
+  const handleClear = () => {
+    setCenter(null);
+    setOutsideZone(false);
+  };
 
   const handleLocate = useCallback(() => {
     if (!navigator.geolocation) { setLocateError("Trình duyệt không hỗ trợ định vị"); return; }
@@ -273,21 +203,9 @@ export function MapPicker({ onLocationSelect }: MapPickerProps) {
     );
   }, []);
 
-  const handleClearZone = () => {
-    setClearSignal((n) => n + 1);
-    setHasZone(false);
-    setOutsideZone(false);
-  };
-
-  const handleZoneReady = useCallback((sel: LocationSelection) => {
-    setHasZone(true);
-    setOutsideZone(false);
-    onLocationSelect(sel);
-  }, [onLocationSelect]);
-
   // Derive bounds/center from allowed zone
   let bounds: LatLngBoundsLiteral | null = DEFAULT_BOUNDS;
-  let center: LatLngExpression = DEFAULT_CENTER;
+  let mapCenter: LatLngExpression = DEFAULT_CENTER;
   if (config?.allowedZone) {
     const az = config.allowedZone as { type?: string; coordinates?: number[][][] };
     if (az.type === "Polygon" && az.coordinates) {
@@ -295,35 +213,33 @@ export function MapPicker({ onLocationSelect }: MapPickerProps) {
       const lats = ring.map((p) => p[1]);
       const lngs = ring.map((p) => p[0]);
       bounds = [[Math.min(...lats), Math.min(...lngs)], [Math.max(...lats), Math.max(...lngs)]];
-      center = [(Math.min(...lats) + Math.max(...lats)) / 2, (Math.min(...lngs) + Math.max(...lngs)) / 2];
+      mapCenter = [(Math.min(...lats) + Math.max(...lats)) / 2, (Math.min(...lngs) + Math.max(...lngs)) / 2];
     }
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
+
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         <Button type="button" variant="outline" size="sm" onClick={handleLocate} disabled={locating} className="flex items-center gap-2">
           {locating ? <LoaderCircle className="w-4 h-4 animate-spin" /> : <Locate className="w-4 h-4" />}
-          {locating ? "Đang định vị..." : "Định vị vị trí của tôi"}
+          {locating ? "Đang định vị..." : "Định vị của tôi"}
         </Button>
-
-        {hasZone && !drawing && (
-          <Button type="button" variant="outline" size="sm" onClick={handleClearZone} className="flex items-center gap-2 text-red-600 border-red-300 hover:bg-red-50">
-            <Trash2 className="w-4 h-4" /> Vẽ lại vùng
+        {center && (
+          <Button type="button" variant="outline" size="sm" onClick={handleClear} className="flex items-center gap-2 text-red-600 border-red-300 hover:bg-red-50">
+            <Trash2 className="w-4 h-4" /> Chọn lại
           </Button>
         )}
-
         {locateError && <span className="text-sm text-destructive">{locateError}</span>}
       </div>
 
       {/* Instructions */}
-      <div className="flex flex-wrap items-start gap-2 rounded-md bg-blue-50 border border-blue-200 px-3 py-2 text-sm text-blue-700">
-        {drawing
-          ? <><CheckCircle className="w-4 h-4 mt-0.5 shrink-0 text-blue-500" /><span>Đang vẽ — nhấp từng điểm trên bản đồ, nhấp lại điểm đầu để đóng vùng</span></>
-          : hasZone
-            ? <><CheckCircle className="w-4 h-4 mt-0.5 shrink-0 text-green-500" /><span>Vùng quay đã được chọn. Nhấn "Vẽ lại vùng" nếu muốn thay đổi.</span></>
-            : <><span className="shrink-0">📐</span><span>Chọn công cụ hình chữ nhật hoặc đa giác ở bên trái bản đồ, sau đó khoanh vùng khu vực bạn muốn quay.</span></>
+      <div className="flex items-start gap-2 rounded-md bg-blue-50 border border-blue-200 px-3 py-2.5 text-sm text-blue-800">
+        <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
+        {center
+          ? <span>Vùng quay đã chọn. Dùng thanh bên dưới để điều chỉnh bán kính, hoặc nhấp lại để đổi vị trí.</span>
+          : <span><strong>Nhấp/chạm vào bản đồ</strong> để chọn tâm vùng quay.</span>
         }
       </div>
 
@@ -331,14 +247,14 @@ export function MapPicker({ onLocationSelect }: MapPickerProps) {
       {outsideZone && (
         <div className="flex items-center gap-2 rounded-md border border-orange-200 bg-orange-50 px-3 py-2 text-sm text-orange-700">
           <AlertTriangle className="h-4 w-4 shrink-0" />
-          <span>Vùng vẽ nằm ngoài khu vực hoạt động. Vui lòng khoanh vùng bên trong đường viền xanh lá trên bản đồ.</span>
+          <span>Vị trí này nằm ngoài khu vực hoạt động. Vui lòng chọn điểm trong vùng xanh lá trên bản đồ.</span>
         </div>
       )}
 
       {/* Map */}
-      <div className="relative h-[420px] w-full rounded-md border overflow-hidden" style={{ touchAction: "none" }}>
+      <div className="relative h-[400px] w-full rounded-md border overflow-hidden" style={{ touchAction: center ? "pan-x pan-y" : "none" }}>
         <MapContainer
-          center={center}
+          center={mapCenter}
           zoom={9}
           minZoom={8}
           maxZoom={21}
@@ -352,10 +268,11 @@ export function MapPicker({ onLocationSelect }: MapPickerProps) {
             subdomains={["0", "1", "2", "3"]}
             maxZoom={21}
           />
-          <MapController flyRef={flyRef} />
+          <FlyController flyRef={flyRef} />
           <BoundsUpdater bounds={bounds} />
+          <TapHandler allowedZoneRef={allowedZoneRef} onTap={handleTap} />
 
-          {/* Allowed zone (green dashed) */}
+          {/* Allowed zone boundary */}
           {config?.allowedZone && (() => {
             const az = config.allowedZone as { type?: string; coordinates?: number[][][] };
             if (az.type === "Polygon" && az.coordinates) {
@@ -369,7 +286,7 @@ export function MapPicker({ onLocationSelect }: MapPickerProps) {
             return null;
           })()}
 
-          {/* No-fly zones (red) */}
+          {/* No-fly zones */}
           {noFlyZones.map((zone, i) => {
             const coords = extractCoords(zone);
             if (!coords) return null;
@@ -389,7 +306,7 @@ export function MapPicker({ onLocationSelect }: MapPickerProps) {
             </Circle>
           ))}
 
-          {/* Blue "you are here" dot */}
+          {/* My location */}
           {myPos && (
             <Circle center={myPos} radius={60}
               pathOptions={{ color: "#3b82f6", fillColor: "#93c5fd", fillOpacity: 0.4, weight: 2 }}>
@@ -397,46 +314,64 @@ export function MapPicker({ onLocationSelect }: MapPickerProps) {
             </Circle>
           )}
 
-          {/* Geoman zone drawer */}
-          <ZoneDrawer
-            zonesRef={zonesRef}
-            allowedZoneRef={allowedZoneRef}
-            onZoneReady={handleZoneReady}
-            onOutsideZone={setOutsideZone}
-            clearSignal={clearSignal}
-            onDrawingChange={setDrawing}
-          />
+          {/* Selected filming zone */}
+          {center && (
+            <Circle
+              center={center}
+              radius={radius}
+              pathOptions={{ color: "#3b82f6", fillColor: "#3b82f6", fillOpacity: 0.25, weight: 2.5 }}
+            >
+              <Tooltip permanent direction="top">Vùng quay ({radius >= 1000 ? `${radius / 1000} km` : `${radius} m`})</Tooltip>
+            </Circle>
+          )}
         </MapContainer>
 
         {/* Legend */}
         <div className="absolute bottom-3 right-3 z-[1000] bg-background/90 backdrop-blur-sm border rounded-md px-3 py-2 text-xs space-y-1 shadow-md pointer-events-none">
           <p className="font-semibold text-foreground mb-1">Chú thích</p>
           <div className="flex items-center gap-2">
-            <span className="inline-block w-4 h-3 rounded border-2 border-blue-500 bg-blue-500/25 flex-shrink-0" />
+            <span className="inline-block w-3 h-3 rounded-full border-2 border-blue-500 bg-blue-500/25 flex-shrink-0" />
             <span className="text-muted-foreground">Vùng muốn quay</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="inline-block w-4 h-3 rounded border-2 border-dashed border-red-500 bg-red-500/20 flex-shrink-0" />
             <span className="text-muted-foreground">Vùng cấm bay</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="inline-block w-4 h-3 rounded border-2 border-dashed border-green-500 bg-green-500/10 flex-shrink-0" />
-            <span className="text-muted-foreground">Vùng được phép bay</span>
-          </div>
+          {config?.allowedZone && (
+            <div className="flex items-center gap-2">
+              <span className="inline-block w-4 h-3 rounded border-2 border-dashed border-green-500 bg-green-500/10 flex-shrink-0" />
+              <span className="text-muted-foreground">Vùng được phép bay</span>
+            </div>
+          )}
         </div>
       </div>
 
-      <style>{`
-        .leaflet-pm-toolbar .leaflet-pm-icon {
-          width: 34px !important; height: 34px !important; line-height: 34px !important;
-        }
-        @media (max-width: 640px) {
-          .leaflet-pm-toolbar .leaflet-pm-icon {
-            width: 40px !important; height: 40px !important; line-height: 40px !important; font-size: 18px !important;
-          }
-          .leaflet-pm-toolbar a { width: 40px !important; height: 40px !important; }
-        }
-      `}</style>
+      {/* Radius slider — only shown after a point is selected */}
+      {center && (
+        <div className="space-y-2 px-1">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground font-medium">Bán kính vùng quay</span>
+            <span className="font-semibold text-foreground tabular-nums">
+              {radius >= 1000 ? `${radius / 1000} km` : `${radius} m`}
+              {geocoding && <LoaderCircle className="inline ml-2 w-3.5 h-3.5 animate-spin text-muted-foreground" />}
+            </span>
+          </div>
+          <Slider
+            min={0}
+            max={RADIUS_OPTIONS.length - 1}
+            step={1}
+            value={[radiusIdx]}
+            onValueChange={handleRadiusChange}
+            className="w-full"
+          />
+          <div className="flex justify-between text-xs text-muted-foreground px-0.5">
+            <span>100 m</span>
+            <span>500 m</span>
+            <span>1 km</span>
+            <span>3 km</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
