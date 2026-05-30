@@ -104,6 +104,34 @@ router.get("/requests/mine", async (req, res): Promise<void> => {
   res.json(GetMyRequestResponse.parse(formatRequest(found)));
 });
 
+router.delete("/requests/mine", async (req, res): Promise<void> => {
+  const ip = getClientIp(req);
+
+  const rows = await db
+    .select()
+    .from(filmingRequestsTable)
+    .where(eq(filmingRequestsTable.ipAddress, ip));
+
+  const activeStatuses = ["pending", "approved", "filming"];
+  const active = rows.find((r) => activeStatuses.includes(r.status));
+
+  if (!active) {
+    res.status(404).json({ error: "Không tìm thấy yêu cầu đang hoạt động." });
+    return;
+  }
+
+  if (active.status === "filming") {
+    res.status(409).json({ error: "Không thể hủy yêu cầu đang được quay." });
+    return;
+  }
+
+  await db
+    .delete(filmingRequestsTable)
+    .where(eq(filmingRequestsTable.id, active.id));
+
+  res.status(204).end();
+});
+
 router.get("/queue", async (_req, res): Promise<void> => {
   const rows = await db
     .select()

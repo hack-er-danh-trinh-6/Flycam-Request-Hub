@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useGetQueue, useGetQueueStats, useCreateRequest, getGetMyRequestQueryKey } from "@workspace/api-client-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,9 +9,14 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { Plane, Activity, CheckCircle2, Clock, AlertTriangle, MapPin } from "lucide-react";
+import { Plane, Activity, CheckCircle2, Clock, AlertTriangle, MapPin, LoaderCircle } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { ApiError } from "@workspace/api-client-react";
 
@@ -36,6 +41,9 @@ export default function Home() {
   const [isRestrictedZone, setIsRestrictedZone] = useState(false);
   const [filmingZone, setFilmingZone] = useState<object | null>(null);
   const [zoneError, setZoneError] = useState(false);
+  const [showReplaceDialog, setShowReplaceDialog] = useState(false);
+  const [replacing, setReplacing] = useState(false);
+  const pendingDataRef = useRef<FormValues | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -48,46 +56,56 @@ export default function Home() {
     },
   });
 
-  const onSubmit = (data: FormValues) => {
-    if (!filmingZone) {
-      setZoneError(true);
-      return;
-    }
-    setZoneError(false);
-
+  const submitRequest = (data: FormValues) => {
     createRequest.mutate(
       { data: { ...data, filmingZone: filmingZone as Record<string, unknown> } },
       {
         onSuccess: () => {
-          toast({
-            title: "Đã gửi yêu cầu!",
-            description: "Yêu cầu quay flycam của bạn đã được ghi nhận.",
-          });
+          toast({ title: "Đã gửi yêu cầu!", description: "Yêu cầu quay flycam của bạn đã được ghi nhận." });
           queryClient.invalidateQueries({ queryKey: getGetMyRequestQueryKey() });
           setLocation("/status");
         },
         onError: (err) => {
           const apiErr = err as ApiError;
-
           if (apiErr.status === 409) {
-            queryClient.invalidateQueries({ queryKey: getGetMyRequestQueryKey() });
-            setLocation("/status");
+            pendingDataRef.current = data;
+            setShowReplaceDialog(true);
             return;
           }
-
           const serverMsg =
             (apiErr.data as { error?: string } | null)?.error ??
             apiErr.message ??
             "Đã xảy ra lỗi. Vui lòng thử lại.";
-
-          toast({
-            title: "Không thể gửi yêu cầu",
-            description: serverMsg,
-            variant: "destructive",
-          });
+          toast({ title: "Không thể gửi yêu cầu", description: serverMsg, variant: "destructive" });
         },
       }
     );
+  };
+
+  const onSubmit = (data: FormValues) => {
+    if (!filmingZone) { setZoneError(true); return; }
+    setZoneError(false);
+    submitRequest(data);
+  };
+
+  const handleReplace = async () => {
+    if (!pendingDataRef.current) return;
+    setReplacing(true);
+    try {
+      const res = await fetch("/api/requests/mine", { method: "DELETE" });
+      if (!res.ok && res.status !== 404) {
+        const body = await res.json() as { error?: string };
+        toast({ title: "Không thể hủy yêu cầu cũ", description: body.error ?? "Lỗi không xác định", variant: "destructive" });
+        return;
+      }
+      queryClient.invalidateQueries({ queryKey: getGetMyRequestQueryKey() });
+      setShowReplaceDialog(false);
+      submitRequest(pendingDataRef.current);
+    } catch {
+      toast({ title: "Lỗi kết nối", description: "Vui lòng thử lại.", variant: "destructive" });
+    } finally {
+      setReplacing(false);
+    }
   };
 
   return (
@@ -273,6 +291,27 @@ export default function Home() {
           </Card>
         </div>
       </div>
+
+      <AlertDialog open={showReplaceDialog} onOpenChange={setShowReplaceDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Bạn đã có yêu cầu đang chờ</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn đang có một yêu cầu quay flycam chưa hoàn thành. Nếu tiếp tục, yêu cầu cũ sẽ bị hủy và yêu cầu mới sẽ được gửi.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={replacing}>Giữ yêu cầu cũ</AlertDialogCancel>
+            <AlertDialogAction onClick={handleReplace} disabled={replacing} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {replacing ? (
+                <span className="flex items-center gap-2">
+                  <LoaderCircle className="w-4 h-4 animate-spin" /> Đang xử lý...
+                </span>
+              ) : "Hủy cũ, gửi mới"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
