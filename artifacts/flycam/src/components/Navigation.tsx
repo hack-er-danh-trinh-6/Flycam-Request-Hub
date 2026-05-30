@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { PlaneTakeoff, List, Activity, Settings } from "lucide-react";
+import { PlaneTakeoff, List, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function Navigation() {
@@ -40,18 +40,6 @@ export function Navigation() {
               );
             })}
           </div>
-          <Link
-            href="/admin"
-            className={cn(
-              "flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary",
-              location.startsWith("/admin")
-                ? "text-primary"
-                : "text-muted-foreground"
-            )}
-          >
-            <Settings className="h-4 w-4" />
-            <span className="hidden md:inline">Admin</span>
-          </Link>
         </div>
       </div>
     </nav>
