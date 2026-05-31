@@ -36,18 +36,18 @@ export function Navigation() {
                   className={cn(
                     "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-150",
                     active
-                      ? "bg-sky-50 text-sky-700"
-                      : "text-slate-500 hover:text-sky-700 hover:bg-sky-50/70"
+                      ? "bg-orange-50 text-orange-700"
+                      : "text-slate-500 hover:text-orange-700 hover:bg-orange-50/70"
                   )}
                 >
-                  <Icon className={cn("h-4 w-4", active ? "text-sky-500" : "text-slate-400")} />
+                  <Icon className={cn("h-4 w-4", active ? "text-orange-500" : "text-slate-400")} />
                   {label}
                 </Link>
               );
             })}
           </div>
         </div>
-        <div className="h-px bg-gradient-to-r from-transparent via-sky-400/40 to-transparent" />
+        <div className="h-px bg-gradient-to-r from-transparent via-orange-400/40 to-transparent" />
       </nav>
 
       {/* Mobile bottom tab bar */}
@@ -61,14 +61,14 @@ export function Navigation() {
                 href={href}
                 className={cn(
                   "flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 text-[10px] font-semibold transition-colors",
-                  active ? "text-sky-600" : "text-slate-400"
+                  active ? "text-orange-600" : "text-slate-400"
                 )}
               >
                 <div className={cn(
                   "flex items-center justify-center w-10 h-6 rounded-full transition-all",
-                  active ? "bg-sky-100" : ""
+                  active ? "bg-orange-100" : ""
                 )}>
-                  <Icon className={cn("h-[18px] w-[18px]", active ? "text-sky-600" : "text-slate-400")} />
+                  <Icon className={cn("h-[18px] w-[18px]", active ? "text-orange-600" : "text-slate-400")} />
                 </div>
                 <span className="mt-0.5">{label}</span>
               </Link>

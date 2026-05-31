@@ -235,7 +235,7 @@ export function MapPicker({ onLocationSelect }: MapPickerProps) {
       </div>
 
       {/* Instructions */}
-      <div className="flex items-start gap-2 rounded-md bg-blue-50 border border-blue-200 px-3 py-2.5 text-sm text-blue-800">
+      <div className="flex items-start gap-2 rounded-md bg-orange-50 border border-orange-200 px-3 py-2.5 text-sm text-orange-800">
         <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
         <span className="min-w-0 break-words">
           {center
@@ -332,7 +332,7 @@ export function MapPicker({ onLocationSelect }: MapPickerProps) {
         <div className="absolute bottom-3 right-3 z-[1000] bg-background/90 backdrop-blur-sm border rounded-md px-3 py-2 text-xs space-y-1 shadow-md pointer-events-none">
           <p className="font-semibold text-foreground mb-1">Chú thích</p>
           <div className="flex items-center gap-2">
-            <span className="inline-block w-3 h-3 rounded-full border-2 border-blue-500 bg-blue-500/25 flex-shrink-0" />
+            <span className="inline-block w-3 h-3 rounded-full border-2 border-orange-500 bg-orange-500/25 flex-shrink-0" />
             <span className="text-muted-foreground">Vùng muốn quay</span>
           </div>
           <div className="flex items-center gap-2">

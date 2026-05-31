@@ -48,7 +48,7 @@ export default function Status() {
 
   const statusConfig = {
     pending:   { label: "Chờ duyệt",    icon: Clock,        color: "bg-yellow-100 text-yellow-800 border-yellow-200" },
-    approved:  { label: "Đã duyệt & Xếp hàng", icon: CheckCircle, color: "bg-blue-100 text-blue-800 border-blue-200" },
+    approved:  { label: "Đã duyệt & Xếp hàng", icon: CheckCircle, color: "bg-orange-100 text-orange-800 border-orange-200" },
     filming:   { label: "Đang quay",    icon: Plane,        color: "bg-primary/20 text-primary border-primary/30" },
     completed: { label: "Hoàn thành",   icon: Video,        color: "bg-green-100 text-green-800 border-green-200" },
     rejected:  { label: "Từ chối",      icon: XCircle,      color: "bg-red-100 text-red-800 border-red-200" },
@@ -116,8 +116,8 @@ export default function Status() {
 
           {/* Approved: queued */}
           {request.status === "approved" && (
-            <div className="p-6 rounded-lg bg-blue-50 border border-blue-200 text-center space-y-3">
-              <CheckCircle className="w-10 h-10 text-blue-500 mx-auto" />
+            <div className="p-6 rounded-lg bg-orange-50 border border-orange-200 text-center space-y-3">
+              <CheckCircle className="w-10 h-10 text-orange-500 mx-auto" />
               <div>
                 <h3 className="font-semibold text-lg">Yêu cầu đã được chấp thuận!</h3>
                 <p className="text-muted-foreground text-sm">

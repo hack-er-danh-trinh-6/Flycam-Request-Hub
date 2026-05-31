@@ -63,18 +63,18 @@
   --popover: 0 0% 100%;
   --popover-foreground: 220 50% 8%;
   --popover-border: 214 20% 88%;
-  --primary: 205 88% 40%;
+  --primary: 25 90% 50%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 214 28% 91%;
+  --secondary: 25 20% 91%;
   --secondary-foreground: 220 50% 8%;
-  --muted: 214 24% 94%;
+  --muted: 25 15% 94%;
   --muted-foreground: 215 18% 48%;
-  --accent: 205 60% 94%;
-  --accent-foreground: 205 88% 28%;
+  --accent: 25 80% 93%;
+  --accent-foreground: 25 90% 28%;
   --destructive: 0 84% 58%;
   --destructive-foreground: 0 0% 100%;
   --input: 214 22% 87%;
-  --ring: 205 88% 40%;
+  --ring: 25 90% 50%;
   --sidebar: 214 32% 97%;
   --sidebar-foreground: 220 50% 8%;
   --sidebar-border: 214 22% 87%;
@@ -95,7 +95,7 @@
   --popover: 222 42% 8%;
   --popover-foreground: 210 40% 98%;
   --popover-border: 222 28% 14%;
-  --primary: 205 88% 55%;
+  --primary: 25 90% 55%;
   --primary-foreground: 222 47% 5%;
   --secondary: 222 28% 14%;
   --secondary-foreground: 210 40% 98%;
@@ -106,7 +106,7 @@
   --destructive: 0 62% 30%;
   --destructive-foreground: 0 0% 100%;
   --input: 222 28% 14%;
-  --ring: 205 88% 55%;
+  --ring: 25 90% 55%;
   --sidebar: 222 47% 5%;
   --sidebar-foreground: 210 40% 98%;
   --sidebar-border: 222 28% 14%;
@@ -119,7 +119,7 @@
 }
 
 .hero-gradient {
-  background: linear-gradient(135deg, #0c1a2e 0%, #0d2d4a 40%, #0c4a78 75%, #0369a1 100%);
+  background: linear-gradient(135deg, #1a0800 0%, #2d1200 40%, #7a3200 75%, #c45a0a 100%);
 }
 
 @keyframes ring-pulse {

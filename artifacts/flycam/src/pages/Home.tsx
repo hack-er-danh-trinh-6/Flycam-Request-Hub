@@ -117,13 +117,13 @@ export default function Home() {
         <div className="container mx-auto px-4 pt-10 pb-14 relative">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
             <div className="space-y-3 max-w-lg">
-              <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-3.5 py-1.5 text-xs font-medium text-sky-200 backdrop-blur-sm">
+              <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-3.5 py-1.5 text-xs font-medium text-orange-200 backdrop-blur-sm">
                 <Plane className="w-3.5 h-3.5" />
                 Dịch vụ quay flycam chuyên nghiệp
               </div>
               <h1 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight tracking-tight">
                 Ghi hình từ trên cao.<br />
-                <span className="text-sky-300">Đơn giản. Nhanh chóng.</span>
+                <span className="text-orange-300">Đơn giản. Nhanh chóng.</span>
               </h1>
               <p className="text-slate-300 text-sm leading-relaxed max-w-sm">
                 Chọn khu vực, điền thông tin — đội phi công của chúng tôi sẽ liên hệ và thực hiện cho bạn.
@@ -133,8 +133,8 @@ export default function Home() {
             {/* Stats */}
             <div className="flex gap-3 shrink-0">
               <div className="flex items-center gap-3 bg-white/10 border border-white/15 rounded-2xl px-4 py-3 backdrop-blur-sm">
-                <div className="p-2 bg-sky-400/20 rounded-xl">
-                  <Activity className="w-4 h-4 text-sky-300" />
+                <div className="p-2 bg-orange-400/20 rounded-xl">
+                  <Activity className="w-4 h-4 text-orange-300" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-white leading-none">{queueStats?.filming ?? 0}</p>
@@ -164,7 +164,7 @@ export default function Home() {
             {/* Form header */}
             <div className="px-6 pt-6 pb-5 border-b border-slate-100">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-sky-500 flex items-center justify-center shadow-md shadow-sky-500/30">
+                <div className="w-10 h-10 rounded-2xl bg-orange-500 flex items-center justify-center shadow-md shadow-orange-500/30">
                   <PlaneTakeoff className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -179,7 +179,7 @@ export default function Home() {
                 {/* Step 1: Personal info */}
                 <div className="px-6 pt-5 pb-6 border-b border-slate-100">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-5 h-5 rounded-full bg-sky-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0">1</div>
+                    <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0">1</div>
                     <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Thông tin cá nhân</span>
                   </div>
                   <div className="grid sm:grid-cols-2 gap-4">
@@ -195,7 +195,7 @@ export default function Home() {
                             <Input
                               placeholder="Nguyễn Văn A"
                               {...field}
-                              className="rounded-xl border-slate-200 focus:border-sky-400 focus:ring-sky-400/20 h-11"
+                              className="rounded-xl border-slate-200 focus:border-orange-400 focus:ring-orange-400/20 h-11"
                             />
                           </FormControl>
                           <FormMessage />
@@ -215,7 +215,7 @@ export default function Home() {
                               type="email"
                               placeholder="example@email.com"
                               {...field}
-                              className="rounded-xl border-slate-200 focus:border-sky-400 focus:ring-sky-400/20 h-11"
+                              className="rounded-xl border-slate-200 focus:border-orange-400 focus:ring-orange-400/20 h-11"
                             />
                           </FormControl>
                           <FormMessage />
@@ -228,13 +228,13 @@ export default function Home() {
                 {/* Step 2: Location */}
                 <div className="px-6 pt-5 pb-6">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-5 h-5 rounded-full bg-sky-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0">2</div>
+                    <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0">2</div>
                     <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Khu vực cần quay</span>
                   </div>
 
                   <div className="space-y-3">
                     <Label className="text-xs font-medium text-slate-500 flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-sky-500" /> Chọn vị trí trên bản đồ
+                      <MapPin className="w-3.5 h-3.5 text-orange-500" /> Chọn vị trí trên bản đồ
                     </Label>
 
                     <MapPicker
@@ -250,9 +250,9 @@ export default function Home() {
 
                     {/* Selected location pill */}
                     {locationName && (
-                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-sky-50 border border-sky-200">
-                        <MapPin className="w-3.5 h-3.5 text-sky-500 shrink-0" />
-                        <span className="text-sm text-sky-800 font-medium truncate">{locationName}</span>
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-orange-50 border border-orange-200">
+                        <MapPin className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                        <span className="text-sm text-orange-800 font-medium truncate">{locationName}</span>
                       </div>
                     )}
 
@@ -290,7 +290,7 @@ export default function Home() {
                 <div className="px-6 pb-6">
                   <Button
                     type="submit"
-                    className="w-full h-12 rounded-xl font-semibold text-sm bg-sky-500 hover:bg-sky-600 text-white shadow-lg shadow-sky-500/25 border-0 transition-all duration-200"
+                    className="w-full h-12 rounded-xl font-semibold text-sm bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/25 border-0 transition-all duration-200"
                     disabled={createRequest.isPending}
                   >
                     {createRequest.isPending ? (
@@ -320,7 +320,7 @@ export default function Home() {
               <h3 className="font-bold text-slate-900 text-sm mb-4">Quy trình</h3>
               <div className="space-y-3">
                 {[
-                  { icon: User, label: "Điền thông tin & chọn vị trí", color: "bg-sky-100 text-sky-600" },
+                  { icon: User, label: "Điền thông tin & chọn vị trí", color: "bg-orange-100 text-orange-600" },
                   { icon: Clock, label: "Chờ admin xét duyệt", color: "bg-amber-100 text-amber-600" },
                   { icon: Plane, label: "Phi công thực hiện chuyến bay", color: "bg-purple-100 text-purple-600" },
                   { icon: CheckCircle2, label: "Nhận video hoàn thành", color: "bg-emerald-100 text-emerald-600" },
@@ -345,7 +345,7 @@ export default function Home() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-sky-600 text-xs gap-1 hover:bg-sky-50 rounded-xl h-8 px-3"
+                  className="text-orange-600 text-xs gap-1 hover:bg-orange-50 rounded-xl h-8 px-3"
                   onClick={() => setLocation("/queue")}
                 >
                   Xem tất cả <ChevronRight className="w-3.5 h-3.5" />
@@ -359,13 +359,13 @@ export default function Home() {
                       key={entry.id}
                       className={`flex items-center gap-3 p-3 rounded-2xl ${
                         entry.status === "filming"
-                          ? "bg-sky-50 border border-sky-200"
+                          ? "bg-orange-50 border border-orange-200"
                           : "bg-slate-50 border border-slate-100"
                       }`}
                     >
                       <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
                         entry.status === "filming"
-                          ? "bg-sky-500 text-white"
+                          ? "bg-orange-500 text-white"
                           : "bg-white text-slate-500 border border-slate-200"
                       }`}>
                         {entry.status === "filming"
@@ -378,8 +378,8 @@ export default function Home() {
                         <p className="text-[11px] text-slate-400 truncate">{entry.name}</p>
                       </div>
                       {entry.status === "filming" && (
-                        <span className="flex items-center gap-1 text-sky-600 text-[11px] font-semibold shrink-0">
-                          <span className="ring-pulse w-1.5 h-1.5 rounded-full bg-sky-500 inline-block" />
+                        <span className="flex items-center gap-1 text-orange-600 text-[11px] font-semibold shrink-0">
+                          <span className="ring-pulse w-1.5 h-1.5 rounded-full bg-orange-500 inline-block" />
                           Live
                         </span>
                       )}

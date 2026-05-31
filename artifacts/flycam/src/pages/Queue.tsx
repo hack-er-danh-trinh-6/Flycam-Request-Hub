@@ -27,7 +27,7 @@ export default function Queue() {
         <div className="container max-w-3xl mx-auto">
           <div className="flex items-center gap-3 mb-1.5">
             <div className="p-2 bg-white/10 rounded-xl border border-white/10">
-              <List className="w-5 h-5 text-sky-200" />
+              <List className="w-5 h-5 text-orange-200" />
             </div>
             <h1 className="text-2xl font-bold">Hàng chờ công khai</h1>
           </div>
@@ -56,19 +56,19 @@ export default function Queue() {
                 key={entry.id}
                 className={`relative rounded-2xl overflow-hidden border bg-white transition-all duration-200 card-lift ${
                   isFilming
-                    ? "border-sky-300 shadow-md shadow-sky-100"
+                    ? "border-orange-300 shadow-md shadow-orange-100"
                     : "border-slate-200 shadow-sm"
                 }`}
               >
                 {isFilming && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-sky-50/80 to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-50/80 to-transparent pointer-events-none" />
                 )}
 
                 <div className="flex items-stretch">
                   {/* Rank column */}
                   <div className={`flex items-center justify-center w-16 shrink-0 text-xl font-bold ${
                     isFilming
-                      ? "bg-gradient-to-b from-sky-500 to-blue-600 text-white"
+                      ? "bg-gradient-to-b from-orange-500 to-orange-600 text-white"
                       : rank === 1
                       ? "bg-amber-50 text-amber-500"
                       : "bg-slate-50 text-slate-400"
@@ -99,7 +99,7 @@ export default function Queue() {
 
                       <div className="flex flex-col items-end gap-2 shrink-0">
                         {isFilming ? (
-                          <Badge className="bg-sky-500 hover:bg-sky-500 text-white text-xs px-2.5 py-1">
+                          <Badge className="bg-orange-500 hover:bg-orange-500 text-white text-xs px-2.5 py-1">
                             <span className="ring-pulse inline-block w-1.5 h-1.5 rounded-full bg-white mr-1.5" />
                             Đang quay
                           </Badge>
@@ -121,7 +121,7 @@ export default function Queue() {
                             variant="outline"
                             size="sm"
                             asChild
-                            className="h-8 text-xs border-sky-200 text-sky-700 hover:bg-sky-50 rounded-xl"
+                            className="h-8 text-xs border-orange-200 text-orange-700 hover:bg-orange-50 rounded-xl"
                           >
                             <a href={entry.videoUrl} target="_blank" rel="noopener noreferrer">
                               <Video className="w-3.5 h-3.5 mr-1.5" /> Xem video
