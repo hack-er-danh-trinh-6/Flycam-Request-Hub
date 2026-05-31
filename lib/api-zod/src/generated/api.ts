@@ -154,6 +154,32 @@ export const AdminApproveRequestResponse = zod.object({
 
 
 /**
+ * @summary Start filming a request (admin)
+ */
+export const AdminStartFilmingRequestParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const AdminStartFilmingRequestResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "email": zod.string(),
+  "latitude": zod.number(),
+  "longitude": zod.number(),
+  "locationName": zod.string(),
+  "filmingZone": zod.object({}).passthrough().nullish(),
+  "status": zod.enum(['pending', 'approved', 'filming', 'completed', 'rejected', 'cancelled']),
+  "queuePosition": zod.number().nullish(),
+  "scheduledAt": zod.string().nullish(),
+  "videoUrl": zod.string().nullish(),
+  "cancellationReason": zod.string().nullish(),
+  "ipAddress": zod.string().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
  * @summary Reject a request (admin)
  */
 export const AdminRejectRequestParams = zod.object({

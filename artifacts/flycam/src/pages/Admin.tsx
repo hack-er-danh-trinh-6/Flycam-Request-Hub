@@ -6,6 +6,7 @@ import {
   useAdminScheduleRequest,
   useAdminCompleteRequest,
   useAdminCancelRequest,
+  useAdminStartFilmingRequest,
   useAdminSaveMapConfig,
   useGetMapConfig,
   getAdminListRequestsQueryKey,
@@ -24,7 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
-import { MapPin, User, Mail, Clock, Check, X, Plane, Video, Lock, LogOut, Trash2, Ban } from "lucide-react";
+import { MapPin, User, Mail, Clock, Check, X, Plane, Video, Lock, LogOut, Trash2, Ban, PlayCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
@@ -221,6 +222,7 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
   const scheduleMutation = useAdminScheduleRequest();
   const completeMutation = useAdminCompleteRequest();
   const cancelMutation = useAdminCancelRequest();
+  const startFilmingMutation = useAdminStartFilmingRequest();
 
   const invalidateQueries = () => {
     queryClient.invalidateQueries({ queryKey: getAdminListRequestsQueryKey() });
@@ -260,6 +262,13 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
     cancelMutation.mutate({ id, data: { reason } }, {
       onSuccess: () => { toast({ title: "Đã hủy chuyến quay" }); invalidateQueries(); },
       onError: () => toast({ title: "Lỗi khi hủy", variant: "destructive" }),
+    });
+  };
+
+  const handleStartFilming = (id: number) => {
+    startFilmingMutation.mutate({ id }, {
+      onSuccess: () => { toast({ title: "🎬 Đã bắt đầu quay!" }); invalidateQueries(); },
+      onError: () => toast({ title: "Lỗi", variant: "destructive" }),
     });
   };
 
@@ -369,6 +378,17 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
                                 <X className="w-3.5 h-3.5 mr-1" /> Từ chối
                               </Button>
                             </>
+                          )}
+                          {req.status === "approved" && (
+                            <Button
+                              size="sm"
+                              className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                              onClick={() => handleStartFilming(req.id)}
+                              disabled={startFilmingMutation.isPending}
+                              data-testid={`button-start-${req.id}`}
+                            >
+                              <PlayCircle className="w-3.5 h-3.5 mr-1.5" /> Bắt đầu quay
+                            </Button>
                           )}
                           {(req.status === "approved" || req.status === "filming") && (
                             <ScheduleDialog onSchedule={(date) => handleSchedule(req.id, date)} />

@@ -11,12 +11,14 @@ import {
   AdminCompleteRequestBody,
   AdminCancelRequestParams,
   AdminCancelRequestBody,
+  AdminStartFilmingRequestParams,
   AdminListRequestsResponse,
   AdminApproveRequestResponse,
   AdminRejectRequestResponse,
   AdminScheduleRequestResponse,
   AdminCompleteRequestResponse,
   AdminCancelRequestResponse,
+  AdminStartFilmingRequestResponse,
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
@@ -105,6 +107,27 @@ router.patch("/admin/requests/:id/approve", async (req, res): Promise<void> => {
     .where(eq(filmingRequestsTable.id, params.data.id));
 
   res.json(AdminApproveRequestResponse.parse(formatRequest(final)));
+});
+
+router.patch("/admin/requests/:id/start", async (req, res): Promise<void> => {
+  const params = AdminStartFilmingRequestParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const [updated] = await db
+    .update(filmingRequestsTable)
+    .set({ status: "filming" })
+    .where(eq(filmingRequestsTable.id, params.data.id))
+    .returning();
+
+  if (!updated) {
+    res.status(404).json({ error: "Request not found." });
+    return;
+  }
+
+  res.json(AdminStartFilmingRequestResponse.parse(formatRequest(updated)));
 });
 
 router.patch("/admin/requests/:id/reject", async (req, res): Promise<void> => {

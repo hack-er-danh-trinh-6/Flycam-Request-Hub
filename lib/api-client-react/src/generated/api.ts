@@ -585,6 +585,55 @@ export const useAdminApproveRequest = <TError = ErrorType<ErrorResponse>,
       return useMutation(getAdminApproveRequestMutationOptions(options));
     }
 
+export const getAdminStartFilmingRequestUrl = (id: number,) => {
+  return `/api/admin/requests/${id}/start`
+}
+
+/**
+ * @summary Start filming a request (admin)
+ */
+export const adminStartFilmingRequest = async (id: number, options?: RequestInit): Promise<FilmingRequest> => {
+  return customFetch<FilmingRequest>(getAdminStartFilmingRequestUrl(id), {
+    ...options,
+    method: 'PATCH',
+  });
+}
+
+export const getAdminStartFilmingRequestMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminStartFilmingRequest>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminStartFilmingRequest>>, TError,{id: number}, TContext> => {
+const mutationKey = ['adminStartFilmingRequest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminStartFilmingRequest>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+          return adminStartFilmingRequest(id, requestOptions)
+        }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type AdminStartFilmingRequestMutationResult = NonNullable<Awaited<ReturnType<typeof adminStartFilmingRequest>>>
+export type AdminStartFilmingRequestMutationError = ErrorType<ErrorResponse>
+
+/**
+ * @summary Start filming a request (admin)
+ */
+export const useAdminStartFilmingRequest = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminStartFilmingRequest>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminStartFilmingRequest>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getAdminStartFilmingRequestMutationOptions(options));
+    }
+
 export const getAdminRejectRequestUrl = (id: number,) => {
 
 
