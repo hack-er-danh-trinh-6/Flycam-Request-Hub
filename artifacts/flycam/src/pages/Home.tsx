@@ -109,9 +109,9 @@ export default function Home() {
     <div>
       {/* ── Hero banner ──────────────────────────────────────── */}
       <div className="hero-gradient relative overflow-hidden">
-        {/* Decorative blobs */}
-        <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full bg-white/[0.03] blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/4 w-72 h-72 rounded-full bg-sky-400/10 blur-3xl pointer-events-none" />
+        {/* Decorative blobs — kept inside bounds to avoid horizontal overflow */}
+        <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/[0.03] blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/4 w-60 h-60 rounded-full bg-sky-400/10 blur-3xl pointer-events-none" />
 
         <div className="container mx-auto px-4 py-10 md:py-14 relative">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">

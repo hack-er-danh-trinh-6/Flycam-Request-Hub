@@ -28,7 +28,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <div className="min-h-screen bg-background flex flex-col font-sans">
+          <div className="min-h-screen bg-background flex flex-col font-sans overflow-x-hidden">
             <Navigation />
             {/* pb-20 on mobile clears the fixed bottom tab bar */}
             <main className="flex-1 pb-20 md:pb-0">
