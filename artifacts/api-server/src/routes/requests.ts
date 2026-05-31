@@ -33,6 +33,7 @@ function formatRequest(r: typeof filmingRequestsTable.$inferSelect) {
     queuePosition: r.queuePosition ?? null,
     scheduledAt: r.scheduledAt ? r.scheduledAt.toISOString() : null,
     videoUrl: r.videoUrl ?? null,
+    cancellationReason: r.cancellationReason ?? null,
     ipAddress: r.ipAddress,
     createdAt: r.createdAt.toISOString(),
     updatedAt: r.updatedAt.toISOString(),

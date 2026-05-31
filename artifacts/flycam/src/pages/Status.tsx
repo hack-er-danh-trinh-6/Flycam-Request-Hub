@@ -157,9 +157,9 @@ export default function Status() {
               <XCircle className="w-10 h-10 text-orange-500 mx-auto" />
               <div>
                 <h3 className="font-semibold text-lg">Chuyến quay đã bị hủy</h3>
-                {(request as { cancellationReason?: string | null }).cancellationReason && (
+                {request.cancellationReason && (
                   <div className="mt-2 px-4 py-2 bg-orange-100 rounded-md text-sm text-orange-800 font-medium">
-                    Lý do: {(request as { cancellationReason?: string | null }).cancellationReason}
+                    Lý do: {request.cancellationReason}
                   </div>
                 )}
                 <p className="text-muted-foreground text-sm mt-2">Bạn có thể gửi yêu cầu quay mới bất cứ lúc nào.</p>
