@@ -131,24 +131,24 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Right: live stats */}
-            <div className="flex gap-3 md:flex-col md:items-end shrink-0">
-              <div className="flex items-center gap-3 bg-white/10 border border-white/15 rounded-2xl px-5 py-3 backdrop-blur-sm">
-                <div className="p-2 bg-sky-400/25 rounded-xl">
-                  <Activity className="h-5 w-5 text-sky-200" />
+            {/* Live stats — 2-col grid on mobile, stacked on desktop */}
+            <div className="grid grid-cols-2 md:flex md:flex-col md:items-end gap-2 md:gap-3 shrink-0">
+              <div className="flex items-center gap-2.5 bg-white/10 border border-white/15 rounded-xl md:rounded-2xl px-3 md:px-5 py-2.5 md:py-3 backdrop-blur-sm">
+                <div className="p-1.5 md:p-2 bg-sky-400/25 rounded-lg md:rounded-xl shrink-0">
+                  <Activity className="h-4 w-4 md:h-5 md:w-5 text-sky-200" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white leading-none">{queueStats?.filming ?? 0}</p>
-                  <p className="text-xs text-slate-300 mt-0.5">Đang quay</p>
+                  <p className="text-xl md:text-2xl font-bold text-white leading-none">{queueStats?.filming ?? 0}</p>
+                  <p className="text-[10px] md:text-xs text-slate-300 mt-0.5">Đang quay</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 bg-white/10 border border-white/15 rounded-2xl px-5 py-3 backdrop-blur-sm">
-                <div className="p-2 bg-amber-400/25 rounded-xl">
-                  <Clock className="h-5 w-5 text-amber-200" />
+              <div className="flex items-center gap-2.5 bg-white/10 border border-white/15 rounded-xl md:rounded-2xl px-3 md:px-5 py-2.5 md:py-3 backdrop-blur-sm">
+                <div className="p-1.5 md:p-2 bg-amber-400/25 rounded-lg md:rounded-xl shrink-0">
+                  <Clock className="h-4 w-4 md:h-5 md:w-5 text-amber-200" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white leading-none">{queueStats?.pending ?? 0}</p>
-                  <p className="text-xs text-slate-300 mt-0.5">Đang chờ</p>
+                  <p className="text-xl md:text-2xl font-bold text-white leading-none">{queueStats?.pending ?? 0}</p>
+                  <p className="text-[10px] md:text-xs text-slate-300 mt-0.5">Đang chờ</p>
                 </div>
               </div>
             </div>
