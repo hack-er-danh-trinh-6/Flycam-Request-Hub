@@ -1,96 +1,145 @@
 import { useGetQueue } from "@workspace/api-client-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import { Plane, CheckCircle2, Clock, MapPin, User, Video } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
+import { Plane, CheckCircle2, Clock, MapPin, User, Video, List } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Queue() {
   const { data: queue, isLoading } = useGetQueue();
 
   if (isLoading) {
     return (
-      <div className="container max-w-4xl mx-auto py-12 px-4 space-y-6">
-        <Skeleton className="h-10 w-48" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-24 w-full" />
+      <div className="container max-w-3xl mx-auto py-10 px-4 space-y-4">
+        <Skeleton className="h-10 w-52 rounded-xl" />
+        <Skeleton className="h-24 w-full rounded-2xl" />
+        <Skeleton className="h-24 w-full rounded-2xl" />
+        <Skeleton className="h-24 w-full rounded-2xl" />
       </div>
     );
   }
 
   return (
-    <div className="container max-w-4xl mx-auto py-12 px-4 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight mb-2">Public Flight Queue</h1>
-        <p className="text-muted-foreground">Live leaderboard of upcoming and completed flights.</p>
+    <div>
+      {/* Header */}
+      <div className="hero-gradient text-white px-4 py-10">
+        <div className="container max-w-3xl mx-auto">
+          <div className="flex items-center gap-3 mb-1.5">
+            <div className="p-2 bg-white/10 rounded-xl border border-white/10">
+              <List className="w-5 h-5 text-sky-200" />
+            </div>
+            <h1 className="text-2xl font-bold">Hàng chờ công khai</h1>
+          </div>
+          <p className="text-slate-300 text-sm">Danh sách yêu cầu quay đang chờ và đã hoàn thành.</p>
+        </div>
       </div>
 
-      <div className="space-y-4">
-        {queue?.length === 0 ? (
-          <Card className="py-12 border-dashed">
-            <CardContent className="flex flex-col items-center justify-center text-center">
-              <Plane className="w-12 h-12 text-muted-foreground opacity-50 mb-4" />
-              <h3 className="text-lg font-semibold">Queue is empty</h3>
-              <p className="text-muted-foreground">No flights are currently scheduled.</p>
-            </CardContent>
-          </Card>
+      <div className="container max-w-3xl mx-auto py-6 px-4 space-y-3">
+        {!queue?.length ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+              <Plane className="w-9 h-9 text-slate-300" />
+            </div>
+            <h3 className="text-base font-semibold text-slate-600 mb-1">Hàng chờ đang trống</h3>
+            <p className="text-slate-400 text-sm">Chưa có chuyến bay nào được lên lịch.</p>
+          </div>
         ) : (
-          queue?.map((entry, index) => (
-            <Card key={entry.id} className={`overflow-hidden transition-all duration-300 ${entry.status === 'filming' ? 'border-primary ring-1 ring-primary/20 shadow-md shadow-primary/10' : ''}`}>
-              <div className="flex flex-col sm:flex-row">
-                <div className={`p-4 flex items-center justify-center sm:w-20 ${entry.status === 'completed' ? 'bg-muted' : entry.status === 'filming' ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}>
-                  <span className="text-2xl font-bold opacity-80">#{index + 1}</span>
-                </div>
-                <div className="p-4 sm:p-6 flex-1 grid sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-lg line-clamp-1">{entry.locationName}</h3>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <User className="w-4 h-4 mr-2" /> {entry.name}
-                    </div>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <MapPin className="w-4 h-4 mr-2" /> {entry.latitude.toFixed(4)}, {entry.longitude.toFixed(4)}
-                    </div>
-                  </div>
-                  
-                  <div className="flex flex-col sm:items-end justify-center space-y-3">
-                    <div className="flex items-center gap-2">
-                      {entry.status === 'filming' && (
-                        <Badge className="bg-primary hover:bg-primary px-3 py-1">
-                          <Plane className="w-3 h-3 mr-1 animate-pulse" /> Filming
-                        </Badge>
-                      )}
-                      {entry.status === 'approved' && (
-                        <Badge variant="secondary" className="px-3 py-1">
-                          <Clock className="w-3 h-3 mr-1" /> Queued
-                        </Badge>
-                      )}
-                      {entry.status === 'completed' && (
-                        <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-none px-3 py-1">
-                          <CheckCircle2 className="w-3 h-3 mr-1" /> Completed
-                        </Badge>
-                      )}
-                    </div>
-                    
-                    {entry.scheduledAt && entry.status !== 'completed' && (
-                      <p className="text-sm font-medium">
-                        {format(new Date(entry.scheduledAt), "MMM d, h:mm a")}
-                      </p>
-                    )}
+          queue.map((entry, index) => {
+            const isFilming = entry.status === "filming";
+            const isCompleted = entry.status === "completed";
 
-                    {entry.videoUrl && (
-                      <Button variant="outline" size="sm" asChild className="mt-2">
-                        <a href={entry.videoUrl} target="_blank" rel="noopener noreferrer">
-                          <Video className="w-4 h-4 mr-2" /> Watch Video
-                        </a>
-                      </Button>
-                    )}
+            return (
+              <div
+                key={entry.id}
+                className={`relative rounded-2xl overflow-hidden border bg-white transition-all duration-200 card-lift ${
+                  isFilming
+                    ? "border-sky-300 shadow-md shadow-sky-100"
+                    : "border-slate-200 shadow-sm"
+                }`}
+              >
+                {isFilming && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-sky-50/80 to-transparent pointer-events-none" />
+                )}
+
+                <div className="flex items-stretch">
+                  {/* Rank / status column */}
+                  <div className={`flex items-center justify-center w-16 shrink-0 text-xl font-bold ${
+                    isFilming
+                      ? "bg-gradient-to-b from-sky-500 to-blue-600 text-white"
+                      : isCompleted
+                      ? "bg-slate-100 text-slate-400"
+                      : "bg-slate-50 text-slate-500"
+                  }`}>
+                    {isFilming
+                      ? <Plane className="w-6 h-6 animate-pulse" />
+                      : `#${index + 1}`
+                    }
+                  </div>
+
+                  {/* Main content */}
+                  <div className="flex-1 p-4 min-w-0">
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                      <div className="min-w-0">
+                        <h3 className={`font-semibold text-sm leading-snug line-clamp-2 ${
+                          isCompleted ? "text-slate-400" : "text-slate-800"
+                        }`}>
+                          {entry.locationName}
+                        </h3>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5">
+                          <span className="flex items-center text-xs text-slate-400 gap-1">
+                            <User className="w-3 h-3" /> {entry.name}
+                          </span>
+                          <span className="flex items-center text-xs text-slate-400 gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {entry.latitude.toFixed(4)}, {entry.longitude.toFixed(4)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col items-end gap-2 shrink-0">
+                        {isFilming && (
+                          <Badge className="bg-sky-500 hover:bg-sky-500 text-white text-xs px-2.5 py-1">
+                            <span className="ring-pulse inline-block w-1.5 h-1.5 rounded-full bg-white mr-1.5" />
+                            Đang quay
+                          </Badge>
+                        )}
+                        {entry.status === "approved" && (
+                          <Badge variant="secondary" className="text-xs px-2.5 py-1">
+                            <Clock className="w-3 h-3 mr-1" /> Đang chờ
+                          </Badge>
+                        )}
+                        {isCompleted && (
+                          <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none text-xs px-2.5 py-1">
+                            <CheckCircle2 className="w-3 h-3 mr-1" /> Hoàn thành
+                          </Badge>
+                        )}
+
+                        {entry.scheduledAt && !isCompleted && (
+                          <p className="text-xs text-slate-500 font-medium">
+                            {format(new Date(entry.scheduledAt), "dd/MM/yyyy HH:mm", { locale: vi })}
+                          </p>
+                        )}
+
+                        {entry.videoUrl && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            asChild
+                            className="h-8 text-xs border-sky-200 text-sky-700 hover:bg-sky-50 rounded-xl"
+                          >
+                            <a href={entry.videoUrl} target="_blank" rel="noopener noreferrer">
+                              <Video className="w-3.5 h-3.5 mr-1.5" /> Xem video
+                            </a>
+                          </Button>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </Card>
-          ))
+            );
+          })
         )}
       </div>
     </div>

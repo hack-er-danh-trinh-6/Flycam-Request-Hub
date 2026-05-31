@@ -30,7 +30,8 @@ function App() {
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
           <div className="min-h-screen bg-background flex flex-col font-sans">
             <Navigation />
-            <main className="flex-1">
+            {/* pb-20 on mobile clears the fixed bottom tab bar */}
+            <main className="flex-1 pb-20 md:pb-0">
               <Router />
             </main>
           </div>
