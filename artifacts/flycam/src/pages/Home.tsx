@@ -157,11 +157,11 @@ export default function Home() {
       </div>
 
       {/* ── Main content ─────────────────────────────────────── */}
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="container mx-auto px-5 py-8 max-w-6xl">
         <div className="grid lg:grid-cols-2 gap-8 items-start">
 
           {/* ── Form card ───────────────────────────────────────── */}
-          <Card className="border-0 shadow-xl rounded-2xl overflow-hidden">
+          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
             <div className="h-1.5 bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500" />
             <CardHeader className="pb-3 pt-5">
               <div className="flex items-center gap-3">

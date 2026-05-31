@@ -237,10 +237,12 @@ export function MapPicker({ onLocationSelect }: MapPickerProps) {
       {/* Instructions */}
       <div className="flex items-start gap-2 rounded-md bg-blue-50 border border-blue-200 px-3 py-2.5 text-sm text-blue-800">
         <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
-        {center
-          ? <span>Vùng quay đã chọn. Dùng thanh bên dưới để điều chỉnh bán kính, hoặc nhấp lại để đổi vị trí.</span>
-          : <span><strong>Nhấp/chạm vào bản đồ</strong> để chọn tâm vùng quay.</span>
-        }
+        <span className="min-w-0 break-words">
+          {center
+            ? "Vùng quay đã chọn. Dùng thanh bên dưới để điều chỉnh bán kính, hoặc nhấp lại để đổi vị trí."
+            : <><strong>Nhấp/chạm vào bản đồ</strong> để chọn tâm vùng quay.</>
+          }
+        </span>
       </div>
 
       {/* Outside-zone warning */}
