@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { PlaneTakeoff, Activity, List } from "lucide-react";
 import { cn } from "@/lib/utils";
+import logoImg from "/logo.png";
 
 const navItems = [
   { href: "/",       label: "Yêu cầu quay",  icon: PlaneTakeoff },
@@ -17,13 +18,12 @@ export function Navigation() {
       <nav className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-sm">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
 
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-sky-400 to-blue-700 shadow-md shadow-blue-500/25 group-hover:shadow-blue-500/40 transition-all duration-200">
-              <PlaneTakeoff className="h-5 w-5 text-white" />
-            </div>
-            <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-sky-600 to-blue-700 bg-clip-text text-transparent">
-              FlyCam
-            </span>
+          <Link href="/" className="flex items-center group">
+            <img
+              src={logoImg}
+              alt="FlyCam Logo"
+              className="h-10 w-auto object-contain"
+            />
           </Link>
 
           <div className="hidden md:flex items-center gap-1">
