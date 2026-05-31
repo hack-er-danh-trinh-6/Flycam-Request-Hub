@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
@@ -157,25 +157,24 @@ export default function Home() {
       </div>
 
       {/* ── Main content ─────────────────────────────────────── */}
-      <div className="container mx-auto px-5 py-8 max-w-6xl">
-        <div className="grid lg:grid-cols-2 gap-8 items-start">
+      <div className="w-full max-w-6xl mx-auto py-6 sm:py-8">
+        <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 items-start">
 
           {/* ── Form card ───────────────────────────────────────── */}
-          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-            <div className="h-1.5 bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500" />
-            <CardHeader className="pb-3 pt-5">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-sky-50 rounded-xl border border-sky-100">
-                  <PlaneTakeoff className="w-4 h-4 text-sky-600" />
-                </div>
-                <div>
-                  <CardTitle className="text-base">Gửi yêu cầu quay</CardTitle>
-                  <CardDescription className="text-xs mt-0.5">Cho chúng tôi biết bạn muốn quay ở đâu.</CardDescription>
-                </div>
+          <div className="mx-4 sm:mx-0">
+          <Card className="border border-slate-200/80 shadow-sm rounded-2xl overflow-hidden w-full">
+            <div className="h-1 bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500" />
+            <div className="flex items-center gap-3 px-4 sm:px-6 pt-4 pb-3">
+              <div className="p-1.5 bg-sky-50 rounded-lg border border-sky-100 shrink-0">
+                <PlaneTakeoff className="w-4 h-4 text-sky-600" />
               </div>
-            </CardHeader>
+              <div>
+                <p className="font-semibold text-sm text-slate-800">Gửi yêu cầu quay</p>
+                <p className="text-xs text-slate-500 mt-0.5">Cho chúng tôi biết bạn muốn quay ở đâu.</p>
+              </div>
+            </div>
 
-            <CardContent>
+            <div className="px-4 sm:px-6 pb-5">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                   <div className="grid sm:grid-cols-2 gap-4">
@@ -269,8 +268,9 @@ export default function Home() {
                   </Button>
                 </form>
               </Form>
-            </CardContent>
+            </div>{/* end px-4 content */}
           </Card>
+          </div>{/* end mx-4 wrapper */}
 
           {/* ── Queue panel ─────────────────────────────────────── */}
           <div className="space-y-4">

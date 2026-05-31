@@ -31,7 +31,7 @@ function App() {
           <div className="min-h-screen bg-background flex flex-col font-sans overflow-x-hidden">
             <Navigation />
             {/* pb-20 on mobile clears the fixed bottom tab bar */}
-            <main className="flex-1 pb-20 md:pb-0">
+            <main className="flex-1 pb-20 md:pb-0 overflow-x-hidden w-full">
               <Router />
             </main>
           </div>
