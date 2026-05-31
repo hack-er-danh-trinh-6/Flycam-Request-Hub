@@ -3,8 +3,65 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { Plane, CheckCircle2, Clock, MapPin, User, Video, List } from "lucide-react";
+import { Plane, CheckCircle2, Clock, MapPin, User, Video, List, XCircle, Ban } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+
+type Status = "pending" | "approved" | "filming" | "completed" | "rejected" | "cancelled";
+
+const STATUS_CONFIG: Record<Status, { label: string; badge: React.ReactNode; dimmed?: boolean }> = {
+  filming: {
+    label: "Đang quay",
+    badge: (
+      <Badge className="bg-sky-500 hover:bg-sky-500 text-white text-xs px-2.5 py-1">
+        <span className="ring-pulse inline-block w-1.5 h-1.5 rounded-full bg-white mr-1.5" />
+        Đang quay
+      </Badge>
+    ),
+  },
+  approved: {
+    label: "Đang chờ",
+    badge: (
+      <Badge variant="secondary" className="text-xs px-2.5 py-1">
+        <Clock className="w-3 h-3 mr-1" /> Đang chờ
+      </Badge>
+    ),
+  },
+  pending: {
+    label: "Chờ duyệt",
+    badge: (
+      <Badge variant="outline" className="text-xs px-2.5 py-1 text-yellow-700 border-yellow-300 bg-yellow-50">
+        <Clock className="w-3 h-3 mr-1" /> Chờ duyệt
+      </Badge>
+    ),
+  },
+  completed: {
+    label: "Hoàn thành",
+    badge: (
+      <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none text-xs px-2.5 py-1">
+        <CheckCircle2 className="w-3 h-3 mr-1" /> Hoàn thành
+      </Badge>
+    ),
+    dimmed: true,
+  },
+  rejected: {
+    label: "Từ chối",
+    badge: (
+      <Badge variant="outline" className="text-xs px-2.5 py-1 text-red-700 border-red-200 bg-red-50">
+        <XCircle className="w-3 h-3 mr-1" /> Từ chối
+      </Badge>
+    ),
+    dimmed: true,
+  },
+  cancelled: {
+    label: "Đã hủy",
+    badge: (
+      <Badge variant="outline" className="text-xs px-2.5 py-1 text-orange-700 border-orange-200 bg-orange-50">
+        <Ban className="w-3 h-3 mr-1" /> Đã hủy
+      </Badge>
+    ),
+    dimmed: true,
+  },
+};
 
 export default function Queue() {
   const { data: queue, isLoading } = useGetQueue();
@@ -31,7 +88,7 @@ export default function Queue() {
             </div>
             <h1 className="text-2xl font-bold">Hàng chờ công khai</h1>
           </div>
-          <p className="text-slate-300 text-sm">Danh sách yêu cầu quay đang chờ và đã hoàn thành.</p>
+          <p className="text-slate-300 text-sm">Tất cả các yêu cầu quay — trừ những chuyến đã bị xóa.</p>
         </div>
       </div>
 
@@ -42,12 +99,14 @@ export default function Queue() {
               <Plane className="w-9 h-9 text-slate-300" />
             </div>
             <h3 className="text-base font-semibold text-slate-600 mb-1">Hàng chờ đang trống</h3>
-            <p className="text-slate-400 text-sm">Chưa có chuyến bay nào được lên lịch.</p>
+            <p className="text-slate-400 text-sm">Chưa có yêu cầu quay nào.</p>
           </div>
         ) : (
           queue.map((entry, index) => {
-            const isFilming = entry.status === "filming";
-            const isCompleted = entry.status === "completed";
+            const status = entry.status as Status;
+            const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.pending;
+            const isFilming = status === "filming";
+            const isDimmed = cfg.dimmed;
 
             return (
               <div
@@ -55,6 +114,8 @@ export default function Queue() {
                 className={`relative rounded-2xl overflow-hidden border bg-white transition-all duration-200 card-lift ${
                   isFilming
                     ? "border-sky-300 shadow-md shadow-sky-100"
+                    : isDimmed
+                    ? "border-slate-100 opacity-70"
                     : "border-slate-200 shadow-sm"
                 }`}
               >
@@ -67,8 +128,8 @@ export default function Queue() {
                   <div className={`flex items-center justify-center w-16 shrink-0 text-xl font-bold ${
                     isFilming
                       ? "bg-gradient-to-b from-sky-500 to-blue-600 text-white"
-                      : isCompleted
-                      ? "bg-slate-100 text-slate-400"
+                      : isDimmed
+                      ? "bg-slate-50 text-slate-300"
                       : "bg-slate-50 text-slate-500"
                   }`}>
                     {isFilming
@@ -82,7 +143,7 @@ export default function Queue() {
                     <div className="flex items-start justify-between gap-3 flex-wrap">
                       <div className="min-w-0">
                         <h3 className={`font-semibold text-sm leading-snug line-clamp-2 ${
-                          isCompleted ? "text-slate-400" : "text-slate-800"
+                          isDimmed ? "text-slate-400" : "text-slate-800"
                         }`}>
                           {entry.locationName}
                         </h3>
@@ -95,27 +156,17 @@ export default function Queue() {
                             {entry.latitude.toFixed(4)}, {entry.longitude.toFixed(4)}
                           </span>
                         </div>
+                        {entry.cancellationReason && (
+                          <p className="mt-1.5 text-xs text-orange-600 italic">
+                            Lý do hủy: {entry.cancellationReason}
+                          </p>
+                        )}
                       </div>
 
                       <div className="flex flex-col items-end gap-2 shrink-0">
-                        {isFilming && (
-                          <Badge className="bg-sky-500 hover:bg-sky-500 text-white text-xs px-2.5 py-1">
-                            <span className="ring-pulse inline-block w-1.5 h-1.5 rounded-full bg-white mr-1.5" />
-                            Đang quay
-                          </Badge>
-                        )}
-                        {entry.status === "approved" && (
-                          <Badge variant="secondary" className="text-xs px-2.5 py-1">
-                            <Clock className="w-3 h-3 mr-1" /> Đang chờ
-                          </Badge>
-                        )}
-                        {isCompleted && (
-                          <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none text-xs px-2.5 py-1">
-                            <CheckCircle2 className="w-3 h-3 mr-1" /> Hoàn thành
-                          </Badge>
-                        )}
+                        {cfg.badge}
 
-                        {entry.scheduledAt && !isCompleted && (
+                        {entry.scheduledAt && status !== "completed" && status !== "cancelled" && status !== "rejected" && (
                           <p className="text-xs text-slate-500 font-medium">
                             {format(new Date(entry.scheduledAt), "dd/MM/yyyy HH:mm", { locale: vi })}
                           </p>

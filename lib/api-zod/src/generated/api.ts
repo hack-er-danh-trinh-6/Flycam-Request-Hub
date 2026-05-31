@@ -72,10 +72,11 @@ export const GetQueueResponseItem = zod.object({
   "locationName": zod.string(),
   "latitude": zod.number(),
   "longitude": zod.number(),
-  "status": zod.enum(['approved', 'filming', 'completed']),
+  "status": zod.enum(['pending', 'approved', 'filming', 'completed', 'rejected', 'cancelled']),
   "queuePosition": zod.number().nullable(),
   "scheduledAt": zod.string().nullable(),
   "videoUrl": zod.string().nullable(),
+  "cancellationReason": zod.string().nullish(),
   "createdAt": zod.string()
 })
 export const GetQueueResponse = zod.array(GetQueueResponseItem)
