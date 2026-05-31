@@ -24,6 +24,7 @@ export const FilmingRequestStatus = {
   filming: 'filming',
   completed: 'completed',
   rejected: 'rejected',
+  cancelled: 'cancelled',
 } as const;
 
 export interface FilmingRequest {
@@ -45,9 +46,15 @@ export interface FilmingRequest {
   scheduledAt?: string | null;
   /** @nullable */
   videoUrl?: string | null;
+  /** @nullable */
+  cancellationReason?: string | null;
   ipAddress?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CancelInput {
+  reason: string;
 }
 
 /**
@@ -162,5 +169,6 @@ export const AdminListRequestsStatus = {
   filming: 'filming',
   completed: 'completed',
   rejected: 'rejected',
+  cancelled: 'cancelled',
 } as const;
 

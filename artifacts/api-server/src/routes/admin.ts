@@ -9,11 +9,14 @@ import {
   AdminScheduleRequestBody,
   AdminCompleteRequestParams,
   AdminCompleteRequestBody,
+  AdminCancelRequestParams,
+  AdminCancelRequestBody,
   AdminListRequestsResponse,
   AdminApproveRequestResponse,
   AdminRejectRequestResponse,
   AdminScheduleRequestResponse,
   AdminCompleteRequestResponse,
+  AdminCancelRequestResponse,
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
@@ -30,6 +33,7 @@ function formatRequest(r: typeof filmingRequestsTable.$inferSelect) {
     queuePosition: r.queuePosition ?? null,
     scheduledAt: r.scheduledAt ? r.scheduledAt.toISOString() : null,
     videoUrl: r.videoUrl ?? null,
+    cancellationReason: r.cancellationReason ?? null,
     ipAddress: r.ipAddress,
     createdAt: r.createdAt.toISOString(),
     updatedAt: r.updatedAt.toISOString(),
@@ -186,6 +190,35 @@ router.patch("/admin/requests/:id/complete", async (req, res): Promise<void> => 
   await assignQueuePositions();
 
   res.json(AdminCompleteRequestResponse.parse(formatRequest(updated)));
+});
+
+router.patch("/admin/requests/:id/cancel", async (req, res): Promise<void> => {
+  const params = AdminCancelRequestParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const body = AdminCancelRequestBody.safeParse(req.body);
+  if (!body.success) {
+    res.status(400).json({ error: body.error.message });
+    return;
+  }
+
+  const [updated] = await db
+    .update(filmingRequestsTable)
+    .set({ status: "cancelled", queuePosition: null, cancellationReason: body.data.reason })
+    .where(eq(filmingRequestsTable.id, params.data.id))
+    .returning();
+
+  if (!updated) {
+    res.status(404).json({ error: "Không tìm thấy yêu cầu." });
+    return;
+  }
+
+  await assignQueuePositions();
+
+  res.json(AdminCancelRequestResponse.parse(formatRequest(updated)));
 });
 
 router.delete("/admin/requests/:id", async (req, res): Promise<void> => {

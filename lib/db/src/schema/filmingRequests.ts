@@ -14,6 +14,7 @@ export const filmingRequestsTable = pgTable("filming_requests", {
   scheduledAt: timestamp("scheduled_at", { withTimezone: true }),
   videoUrl: text("video_url"),
   filmingZone: jsonb("filming_zone"),
+  cancellationReason: text("cancellation_reason"),
   ipAddress: text("ip_address").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),

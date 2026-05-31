@@ -52,6 +52,7 @@ export default function Status() {
     filming:   { label: "Đang quay",    icon: Plane,        color: "bg-primary/20 text-primary border-primary/30" },
     completed: { label: "Hoàn thành",   icon: Video,        color: "bg-green-100 text-green-800 border-green-200" },
     rejected:  { label: "Từ chối",      icon: XCircle,      color: "bg-red-100 text-red-800 border-red-200" },
+    cancelled: { label: "Đã hủy",       icon: XCircle,      color: "bg-orange-100 text-orange-800 border-orange-200" },
   };
 
   const currentStatus = statusConfig[request.status as keyof typeof statusConfig] ?? statusConfig.pending;
@@ -145,6 +146,23 @@ export default function Status() {
               <div>
                 <h3 className="font-semibold text-lg">Yêu cầu bị từ chối</h3>
                 <p className="text-muted-foreground text-sm">Rất tiếc, yêu cầu của bạn không được chấp thuận. Bạn có thể gửi yêu cầu mới.</p>
+              </div>
+              <Button variant="outline" onClick={() => setLocation("/")}>Gửi yêu cầu mới</Button>
+            </div>
+          )}
+
+          {/* Cancelled */}
+          {request.status === "cancelled" && (
+            <div className="p-6 rounded-lg bg-orange-50 border border-orange-200 text-center space-y-3">
+              <XCircle className="w-10 h-10 text-orange-500 mx-auto" />
+              <div>
+                <h3 className="font-semibold text-lg">Chuyến quay đã bị hủy</h3>
+                {(request as { cancellationReason?: string | null }).cancellationReason && (
+                  <div className="mt-2 px-4 py-2 bg-orange-100 rounded-md text-sm text-orange-800 font-medium">
+                    Lý do: {(request as { cancellationReason?: string | null }).cancellationReason}
+                  </div>
+                )}
+                <p className="text-muted-foreground text-sm mt-2">Bạn có thể gửi yêu cầu quay mới bất cứ lúc nào.</p>
               </div>
               <Button variant="outline" onClick={() => setLocation("/")}>Gửi yêu cầu mới</Button>
             </div>

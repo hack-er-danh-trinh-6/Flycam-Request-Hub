@@ -21,6 +21,7 @@ import type {
 
 import type {
   AdminListRequestsParams,
+  CancelInput,
   CompleteInput,
   ErrorResponse,
   FilmingRequest,
@@ -796,6 +797,61 @@ export const useAdminCompleteRequest = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getAdminCompleteRequestMutationOptions(options));
+    }
+
+export const getAdminCancelRequestUrl = (id: number,) => {
+  return `/api/admin/requests/${id}/cancel`
+}
+
+/**
+ * @summary Cancel a filming request with a reason (admin)
+ */
+export const adminCancelRequest = async (id: number,
+    cancelInput: CancelInput, options?: RequestInit): Promise<FilmingRequest> => {
+
+  return customFetch<FilmingRequest>(getAdminCancelRequestUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(cancelInput)
+  }
+);}
+
+export const getAdminCancelRequestMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminCancelRequest>>, TError,{id: number;data: BodyType<CancelInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminCancelRequest>>, TError,{id: number;data: BodyType<CancelInput>}, TContext> => {
+
+const mutationKey = ['adminCancelRequest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminCancelRequest>>, {id: number;data: BodyType<CancelInput>}> = (props) => {
+          const {id,data} = props ?? {};
+          return adminCancelRequest(id,data,requestOptions)
+        }
+
+  return { mutationFn, ...mutationOptions }}
+
+    export type AdminCancelRequestMutationResult = NonNullable<Awaited<ReturnType<typeof adminCancelRequest>>>
+    export type AdminCancelRequestMutationBody = BodyType<CancelInput>
+    export type AdminCancelRequestMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Cancel a filming request with a reason (admin)
+ */
+export const useAdminCancelRequest = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminCancelRequest>>, TError,{id: number;data: BodyType<CancelInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof adminCancelRequest>>,
+        TError,
+        {id: number;data: BodyType<CancelInput>},
+        TContext
+      > => {
+      return useMutation(getAdminCancelRequestMutationOptions(options));
     }
 
 export const getGetMapConfigUrl = () => {

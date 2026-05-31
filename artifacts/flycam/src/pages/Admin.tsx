@@ -5,6 +5,7 @@ import {
   useAdminRejectRequest,
   useAdminScheduleRequest,
   useAdminCompleteRequest,
+  useAdminCancelRequest,
   useAdminSaveMapConfig,
   useGetMapConfig,
   getAdminListRequestsQueryKey,
@@ -23,7 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
-import { MapPin, User, Mail, Clock, Check, X, Plane, Video, Lock, LogOut, Trash2 } from "lucide-react";
+import { MapPin, User, Mail, Clock, Check, X, Plane, Video, Lock, LogOut, Trash2, Ban } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
@@ -202,7 +203,7 @@ function MapConfigTab() {
 
 // ─── Main Admin Panel ────────────────────────────────────────────────────────
 
-type StatusTab = "pending" | "approved" | "filming" | "completed" | "rejected" | "all";
+type StatusTab = "pending" | "approved" | "filming" | "completed" | "rejected" | "cancelled" | "all";
 type AdminSection = "requests" | "mapconfig";
 
 function AdminPanel({ onLogout }: { onLogout: () => void }) {
@@ -219,6 +220,7 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
   const rejectMutation = useAdminRejectRequest();
   const scheduleMutation = useAdminScheduleRequest();
   const completeMutation = useAdminCompleteRequest();
+  const cancelMutation = useAdminCancelRequest();
 
   const invalidateQueries = () => {
     queryClient.invalidateQueries({ queryKey: getAdminListRequestsQueryKey() });
@@ -251,6 +253,13 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
     completeMutation.mutate({ id, data: { videoUrl } }, {
       onSuccess: () => { toast({ title: "Đánh dấu hoàn thành" }); invalidateQueries(); },
       onError: () => toast({ title: "Lỗi", variant: "destructive" }),
+    });
+  };
+
+  const handleCancel = (id: number, reason: string) => {
+    cancelMutation.mutate({ id, data: { reason } }, {
+      onSuccess: () => { toast({ title: "Đã hủy chuyến quay" }); invalidateQueries(); },
+      onError: () => toast({ title: "Lỗi khi hủy", variant: "destructive" }),
     });
   };
 
@@ -298,6 +307,7 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
               <TabsTrigger value="filming">Đang quay</TabsTrigger>
               <TabsTrigger value="completed">Hoàn thành</TabsTrigger>
               <TabsTrigger value="rejected">Từ chối</TabsTrigger>
+              <TabsTrigger value="cancelled">Đã hủy</TabsTrigger>
             </TabsList>
 
             <TabsContent value={activeTab}>
@@ -366,7 +376,10 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
                           {(req.status === "approved" || req.status === "filming") && (
                             <CompleteDialog onComplete={(url) => handleComplete(req.id, url)} />
                           )}
-                          {(req.status === "completed" || req.status === "rejected") && (
+                          {(req.status === "pending" || req.status === "approved" || req.status === "filming") && (
+                            <CancelDialog onCancel={(reason) => handleCancel(req.id, reason)} />
+                          )}
+                          {(req.status === "completed" || req.status === "rejected" || req.status === "cancelled") && (
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button size="sm" variant="outline" className="w-full text-destructive border-destructive/30 hover:bg-destructive/10">
@@ -445,6 +458,7 @@ function StatusBadge({ status }: { status: string }) {
     filming: "bg-purple-100 text-purple-800 border-purple-200",
     completed: "bg-green-100 text-green-800 border-green-200",
     rejected: "bg-red-100 text-red-800 border-red-200",
+    cancelled: "bg-orange-100 text-orange-800 border-orange-200",
   };
   const labels: Record<string, string> = {
     pending: "Chờ duyệt",
@@ -452,6 +466,7 @@ function StatusBadge({ status }: { status: string }) {
     filming: "Đang quay",
     completed: "Hoàn thành",
     rejected: "Từ chối",
+    cancelled: "Đã hủy",
   };
   return (
     <Badge variant="outline" className={`shrink-0 text-xs ${map[status] ?? ""}`}>
@@ -524,6 +539,44 @@ function CompleteDialog({ onComplete }: { onComplete: (url: string) => void }) {
             onClick={() => { onComplete(url); setOpen(false); }}
           >
             Lưu & Thông báo người dùng
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function CancelDialog({ onCancel }: { onCancel: (reason: string) => void }) {
+  const [reason, setReason] = useState("");
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setReason(""); }}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline" className="w-full text-orange-700 border-orange-300 hover:bg-orange-50">
+          <Ban className="w-3.5 h-3.5 mr-1.5" /> Hủy chuyến quay
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Hủy chuyến quay</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label>Lý do hủy <span className="text-destructive">*</span></Label>
+            <Input
+              placeholder="Ví dụ: Thời tiết xấu, không đủ điều kiện bay..."
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">Lý do này sẽ được hiển thị cho người dùng.</p>
+          </div>
+          <Button
+            className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+            disabled={!reason.trim()}
+            onClick={() => { onCancel(reason.trim()); setOpen(false); setReason(""); }}
+          >
+            Xác nhận hủy
           </Button>
         </div>
       </DialogContent>

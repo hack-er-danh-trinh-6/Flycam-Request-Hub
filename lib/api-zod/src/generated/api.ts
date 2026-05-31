@@ -51,10 +51,11 @@ export const GetMyRequestResponse = zod.object({
   "filmingZone": zod.object({
 
 }).passthrough().nullish().describe('GeoJSON Polygon for the requested filming area'),
-  "status": zod.enum(['pending', 'approved', 'filming', 'completed', 'rejected']),
+  "status": zod.enum(['pending', 'approved', 'filming', 'completed', 'rejected', 'cancelled']),
   "queuePosition": zod.number().nullish(),
   "scheduledAt": zod.string().nullish(),
   "videoUrl": zod.string().nullish(),
+  "cancellationReason": zod.string().nullish(),
   "ipAddress": zod.string().optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
@@ -98,7 +99,7 @@ export const GetQueueStatsResponse = zod.object({
  * @summary List all filming requests (admin)
  */
 export const AdminListRequestsQueryParams = zod.object({
-  "status": zod.enum(['pending', 'approved', 'filming', 'completed', 'rejected']).optional()
+  "status": zod.enum(['pending', 'approved', 'filming', 'completed', 'rejected', 'cancelled']).optional()
 })
 
 export const AdminListRequestsResponseItem = zod.object({
@@ -111,10 +112,11 @@ export const AdminListRequestsResponseItem = zod.object({
   "filmingZone": zod.object({
 
 }).passthrough().nullish().describe('GeoJSON Polygon for the requested filming area'),
-  "status": zod.enum(['pending', 'approved', 'filming', 'completed', 'rejected']),
+  "status": zod.enum(['pending', 'approved', 'filming', 'completed', 'rejected', 'cancelled']),
   "queuePosition": zod.number().nullish(),
   "scheduledAt": zod.string().nullish(),
   "videoUrl": zod.string().nullish(),
+  "cancellationReason": zod.string().nullish(),
   "ipAddress": zod.string().optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
@@ -139,10 +141,11 @@ export const AdminApproveRequestResponse = zod.object({
   "filmingZone": zod.object({
 
 }).passthrough().nullish().describe('GeoJSON Polygon for the requested filming area'),
-  "status": zod.enum(['pending', 'approved', 'filming', 'completed', 'rejected']),
+  "status": zod.enum(['pending', 'approved', 'filming', 'completed', 'rejected', 'cancelled']),
   "queuePosition": zod.number().nullish(),
   "scheduledAt": zod.string().nullish(),
   "videoUrl": zod.string().nullish(),
+  "cancellationReason": zod.string().nullish(),
   "ipAddress": zod.string().optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
@@ -166,10 +169,11 @@ export const AdminRejectRequestResponse = zod.object({
   "filmingZone": zod.object({
 
 }).passthrough().nullish().describe('GeoJSON Polygon for the requested filming area'),
-  "status": zod.enum(['pending', 'approved', 'filming', 'completed', 'rejected']),
+  "status": zod.enum(['pending', 'approved', 'filming', 'completed', 'rejected', 'cancelled']),
   "queuePosition": zod.number().nullish(),
   "scheduledAt": zod.string().nullish(),
   "videoUrl": zod.string().nullish(),
+  "cancellationReason": zod.string().nullish(),
   "ipAddress": zod.string().optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
@@ -197,10 +201,11 @@ export const AdminScheduleRequestResponse = zod.object({
   "filmingZone": zod.object({
 
 }).passthrough().nullish().describe('GeoJSON Polygon for the requested filming area'),
-  "status": zod.enum(['pending', 'approved', 'filming', 'completed', 'rejected']),
+  "status": zod.enum(['pending', 'approved', 'filming', 'completed', 'rejected', 'cancelled']),
   "queuePosition": zod.number().nullish(),
   "scheduledAt": zod.string().nullish(),
   "videoUrl": zod.string().nullish(),
+  "cancellationReason": zod.string().nullish(),
   "ipAddress": zod.string().optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
@@ -228,10 +233,43 @@ export const AdminCompleteRequestResponse = zod.object({
   "filmingZone": zod.object({
 
 }).passthrough().nullish().describe('GeoJSON Polygon for the requested filming area'),
-  "status": zod.enum(['pending', 'approved', 'filming', 'completed', 'rejected']),
+  "status": zod.enum(['pending', 'approved', 'filming', 'completed', 'rejected', 'cancelled']),
   "queuePosition": zod.number().nullish(),
   "scheduledAt": zod.string().nullish(),
   "videoUrl": zod.string().nullish(),
+  "cancellationReason": zod.string().nullish(),
+  "ipAddress": zod.string().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Cancel a filming request with a reason (admin)
+ */
+export const AdminCancelRequestParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const AdminCancelRequestBody = zod.object({
+  "reason": zod.string().min(1)
+})
+
+export const AdminCancelRequestResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "email": zod.string(),
+  "latitude": zod.number(),
+  "longitude": zod.number(),
+  "locationName": zod.string(),
+  "filmingZone": zod.object({
+
+}).passthrough().nullish().describe('GeoJSON Polygon for the requested filming area'),
+  "status": zod.enum(['pending', 'approved', 'filming', 'completed', 'rejected', 'cancelled']),
+  "queuePosition": zod.number().nullish(),
+  "scheduledAt": zod.string().nullish(),
+  "videoUrl": zod.string().nullish(),
+  "cancellationReason": zod.string().nullish(),
   "ipAddress": zod.string().optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
