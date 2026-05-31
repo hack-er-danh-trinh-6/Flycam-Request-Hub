@@ -8,7 +8,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
@@ -17,8 +16,9 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import {
-  Plane, Activity, CheckCircle2, Clock, AlertTriangle, MapPin,
-  LoaderCircle, PlaneTakeoff, Sparkles, ChevronRight, User,
+  Plane, Activity, Clock, AlertTriangle, MapPin,
+  LoaderCircle, PlaneTakeoff, ChevronRight, User, Mail,
+  ArrowRight, CheckCircle2,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { ApiError } from "@workspace/api-client-react";
@@ -105,50 +105,49 @@ export default function Home() {
     }
   };
 
+  const locationName = form.watch("locationName");
+
   return (
-    <div>
-      {/* ── Hero banner ──────────────────────────────────────── */}
+    <div className="min-h-screen bg-slate-50">
+      {/* ── Hero ── */}
       <div className="hero-gradient relative overflow-hidden">
-        {/* Decorative blobs — kept inside bounds to avoid horizontal overflow */}
-        <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/[0.03] blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/4 w-60 h-60 rounded-full bg-sky-400/10 blur-3xl pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(56,189,248,0.15),_transparent_60%)]" />
+        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-slate-50/20 to-transparent" />
 
-        <div className="container mx-auto px-4 py-10 md:py-14 relative">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
-
-            {/* Left: tagline */}
-            <div className="space-y-4 max-w-lg">
-              <div className="inline-flex items-center gap-2 bg-white/10 border border-white/15 rounded-full px-3 py-1 text-xs font-medium text-sky-200">
-                <Sparkles className="w-3.5 h-3.5" />
+        <div className="container mx-auto px-4 pt-10 pb-14 relative">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+            <div className="space-y-3 max-w-lg">
+              <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-3.5 py-1.5 text-xs font-medium text-sky-200 backdrop-blur-sm">
+                <Plane className="w-3.5 h-3.5" />
                 Dịch vụ quay flycam chuyên nghiệp
               </div>
               <h1 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight tracking-tight">
                 Ghi hình từ trên cao.<br />
                 <span className="text-sky-300">Đơn giản. Nhanh chóng.</span>
               </h1>
-              <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-                Chọn khu vực trên bản đồ, điền thông tin — đội phi công của chúng tôi sẽ lo phần còn lại.
+              <p className="text-slate-300 text-sm leading-relaxed max-w-sm">
+                Chọn khu vực, điền thông tin — đội phi công của chúng tôi sẽ liên hệ và thực hiện cho bạn.
               </p>
             </div>
 
-            {/* Live stats — 2-col grid on mobile, stacked on desktop */}
-            <div className="grid grid-cols-2 md:flex md:flex-col md:items-end gap-2 md:gap-3 shrink-0">
-              <div className="flex items-center gap-2.5 bg-white/10 border border-white/15 rounded-xl md:rounded-2xl px-3 md:px-5 py-2.5 md:py-3 backdrop-blur-sm">
-                <div className="p-1.5 md:p-2 bg-sky-400/25 rounded-lg md:rounded-xl shrink-0">
-                  <Activity className="h-4 w-4 md:h-5 md:w-5 text-sky-200" />
+            {/* Stats */}
+            <div className="flex gap-3 shrink-0">
+              <div className="flex items-center gap-3 bg-white/10 border border-white/15 rounded-2xl px-4 py-3 backdrop-blur-sm">
+                <div className="p-2 bg-sky-400/20 rounded-xl">
+                  <Activity className="w-4 h-4 text-sky-300" />
                 </div>
                 <div>
-                  <p className="text-xl md:text-2xl font-bold text-white leading-none">{queueStats?.filming ?? 0}</p>
-                  <p className="text-[10px] md:text-xs text-slate-300 mt-0.5">Đang quay</p>
+                  <p className="text-2xl font-bold text-white leading-none">{queueStats?.filming ?? 0}</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Đang quay</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2.5 bg-white/10 border border-white/15 rounded-xl md:rounded-2xl px-3 md:px-5 py-2.5 md:py-3 backdrop-blur-sm">
-                <div className="p-1.5 md:p-2 bg-amber-400/25 rounded-lg md:rounded-xl shrink-0">
-                  <Clock className="h-4 w-4 md:h-5 md:w-5 text-amber-200" />
+              <div className="flex items-center gap-3 bg-white/10 border border-white/15 rounded-2xl px-4 py-3 backdrop-blur-sm">
+                <div className="p-2 bg-amber-400/20 rounded-xl">
+                  <Clock className="w-4 h-4 text-amber-300" />
                 </div>
                 <div>
-                  <p className="text-xl md:text-2xl font-bold text-white leading-none">{queueStats?.pending ?? 0}</p>
-                  <p className="text-[10px] md:text-xs text-slate-300 mt-0.5">Đang chờ</p>
+                  <p className="text-2xl font-bold text-white leading-none">{queueStats?.pending ?? 0}</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Đang chờ</p>
                 </div>
               </div>
             </div>
@@ -156,38 +155,48 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── Main content ─────────────────────────────────────── */}
-      <div className="w-full max-w-6xl mx-auto py-6 sm:py-8">
-        <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+      {/* ── Content ── */}
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
 
-          {/* ── Form card ───────────────────────────────────────── */}
-          <div className="mx-4 sm:mx-0">
-          <Card className="border border-slate-200/80 shadow-sm rounded-2xl overflow-hidden w-full">
-            <div className="h-1 bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500" />
-            <div className="flex items-center gap-3 px-4 sm:px-6 pt-4 pb-3">
-              <div className="p-1.5 bg-sky-50 rounded-lg border border-sky-100 shrink-0">
-                <PlaneTakeoff className="w-4 h-4 text-sky-600" />
-              </div>
-              <div>
-                <p className="font-semibold text-sm text-slate-800">Gửi yêu cầu quay</p>
-                <p className="text-xs text-slate-500 mt-0.5">Cho chúng tôi biết bạn muốn quay ở đâu.</p>
+          {/* ── Form ── */}
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+            {/* Form header */}
+            <div className="px-6 pt-6 pb-5 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-sky-500 flex items-center justify-center shadow-md shadow-sky-500/30">
+                  <PlaneTakeoff className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="font-bold text-slate-900 text-base">Gửi yêu cầu quay</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Điền đầy đủ thông tin để chúng tôi liên hệ lại.</p>
+                </div>
               </div>
             </div>
 
-            <div className="px-4 sm:px-6 pb-5">
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)}>
+                {/* Step 1: Personal info */}
+                <div className="px-6 pt-5 pb-6 border-b border-slate-100">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-5 h-5 rounded-full bg-sky-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0">1</div>
+                    <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Thông tin cá nhân</span>
+                  </div>
                   <div className="grid sm:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+                          <FormLabel className="text-xs font-medium text-slate-500 flex items-center gap-1.5">
                             <User className="w-3.5 h-3.5" /> Họ và tên
                           </FormLabel>
                           <FormControl>
-                            <Input placeholder="Nguyễn Văn A" {...field} className="rounded-xl" />
+                            <Input
+                              placeholder="Nguyễn Văn A"
+                              {...field}
+                              className="rounded-xl border-slate-200 focus:border-sky-400 focus:ring-sky-400/20 h-11"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -198,20 +207,36 @@ export default function Home() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-xs font-semibold text-slate-600">Email</FormLabel>
+                          <FormLabel className="text-xs font-medium text-slate-500 flex items-center gap-1.5">
+                            <Mail className="w-3.5 h-3.5" /> Email liên hệ
+                          </FormLabel>
                           <FormControl>
-                            <Input type="email" placeholder="example@email.com" {...field} className="rounded-xl" />
+                            <Input
+                              type="email"
+                              placeholder="example@email.com"
+                              {...field}
+                              className="rounded-xl border-slate-200 focus:border-sky-400 focus:ring-sky-400/20 h-11"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                   </div>
+                </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-sky-500" /> Khu vực quay
+                {/* Step 2: Location */}
+                <div className="px-6 pt-5 pb-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-5 h-5 rounded-full bg-sky-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0">2</div>
+                    <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Khu vực cần quay</span>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-xs font-medium text-slate-500 flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-sky-500" /> Chọn vị trí trên bản đồ
                     </Label>
+
                     <MapPicker
                       onLocationSelect={(sel: LocationSelection) => {
                         form.setValue("latitude", sel.lat);
@@ -223,123 +248,154 @@ export default function Home() {
                       }}
                     />
 
-                    {isRestrictedZone && (
-                      <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
-                        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                        <span>Vị trí này nằm trong vùng cấm bay. Yêu cầu có thể bị từ chối.</span>
-                      </div>
-                    )}
-                    {zoneError && (
-                      <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-700">
-                        <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-                        <span>Vui lòng nhấp vào bản đồ để chọn vùng quay trước khi gửi.</span>
+                    {/* Selected location pill */}
+                    {locationName && (
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-sky-50 border border-sky-200">
+                        <MapPin className="w-3.5 h-3.5 text-sky-500 shrink-0" />
+                        <span className="text-sm text-sky-800 font-medium truncate">{locationName}</span>
                       </div>
                     )}
 
+                    {/* Hidden field for validation */}
                     <FormField
                       control={form.control}
                       name="locationName"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="hidden">
                           <FormControl>
-                            <Input
-                              readOnly
-                              placeholder="Nhấp vào bản đồ để chọn vị trí..."
-                              {...field}
-                              className="bg-slate-50 text-sm rounded-xl text-slate-600 cursor-default"
-                            />
+                            <Input readOnly {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                  </div>
 
+                    {/* Warnings */}
+                    {isRestrictedZone && (
+                      <div className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700">
+                        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                        <span>Vị trí này nằm trong vùng cấm bay. Yêu cầu có thể bị từ chối.</span>
+                      </div>
+                    )}
+                    {zoneError && (
+                      <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 text-sm text-amber-700">
+                        <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+                        <span>Vui lòng nhấp vào bản đồ để chọn vùng quay trước khi gửi.</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Submit */}
+                <div className="px-6 pb-6">
                   <Button
                     type="submit"
-                    className="w-full h-12 rounded-xl font-semibold text-sm bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 shadow-lg shadow-blue-500/20 border-0 gap-2"
+                    className="w-full h-12 rounded-xl font-semibold text-sm bg-sky-500 hover:bg-sky-600 text-white shadow-lg shadow-sky-500/25 border-0 transition-all duration-200"
                     disabled={createRequest.isPending}
                   >
                     {createRequest.isPending ? (
-                      <><LoaderCircle className="w-4 h-4 animate-spin" /> Đang gửi...</>
+                      <span className="flex items-center gap-2">
+                        <LoaderCircle className="w-4 h-4 animate-spin" /> Đang gửi yêu cầu...
+                      </span>
                     ) : (
-                      <><PlaneTakeoff className="w-4 h-4" /> Gửi yêu cầu quay <ChevronRight className="w-4 h-4 ml-auto" /></>
+                      <span className="flex items-center gap-2">
+                        <PlaneTakeoff className="w-4 h-4" />
+                        Gửi yêu cầu quay
+                        <ArrowRight className="w-4 h-4 ml-auto" />
+                      </span>
                     )}
                   </Button>
-                </form>
-              </Form>
-            </div>{/* end px-4 content */}
-          </Card>
-          </div>{/* end mx-4 wrapper */}
+                  <p className="text-center text-xs text-slate-400 mt-3">
+                    Sau khi gửi, bạn có thể theo dõi trạng thái tại tab <strong>Trạng thái</strong>.
+                  </p>
+                </div>
+              </form>
+            </Form>
+          </div>
 
-          {/* ── Queue panel ─────────────────────────────────────── */}
+          {/* ── Right sidebar ── */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-bold text-slate-800">Hàng chờ</h2>
-                <p className="text-xs text-slate-400 mt-0.5">Yêu cầu đang chờ và đang thực hiện</p>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-sky-600 text-xs gap-1 hover:bg-sky-50"
-                onClick={() => setLocation("/queue")}
-              >
-                Xem tất cả <ChevronRight className="w-3.5 h-3.5" />
-              </Button>
-            </div>
-
-            {queue && queue.length > 0 ? (
-              <div className="space-y-2.5">
-                {queue.slice(0, 5).map((entry, i) => (
-                  <div
-                    key={entry.id}
-                    className={`flex items-center gap-4 p-4 rounded-2xl border bg-white card-lift ${
-                      entry.status === "filming"
-                        ? "border-sky-200 bg-sky-50/40"
-                        : "border-slate-200 shadow-sm"
-                    }`}
-                  >
-                    <div className={`flex items-center justify-center w-9 h-9 rounded-xl font-bold text-sm shrink-0 ${
-                      entry.status === "filming"
-                        ? "bg-gradient-to-b from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/30"
-                        : "bg-slate-100 text-slate-500"
-                    }`}>
-                      {entry.status === "filming"
-                        ? <Plane className="w-4 h-4 animate-pulse" />
-                        : i + 1
-                      }
+            {/* How it works */}
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-5">
+              <h3 className="font-bold text-slate-900 text-sm mb-4">Quy trình</h3>
+              <div className="space-y-3">
+                {[
+                  { icon: User, label: "Điền thông tin & chọn vị trí", color: "bg-sky-100 text-sky-600" },
+                  { icon: Clock, label: "Chờ admin xét duyệt", color: "bg-amber-100 text-amber-600" },
+                  { icon: Plane, label: "Phi công thực hiện chuyến bay", color: "bg-purple-100 text-purple-600" },
+                  { icon: CheckCircle2, label: "Nhận video hoàn thành", color: "bg-emerald-100 text-emerald-600" },
+                ].map((step, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-xl ${step.color} flex items-center justify-center shrink-0`}>
+                      <step.icon className="w-4 h-4" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm text-slate-800 truncate">{entry.locationName}</p>
-                      <p className="text-xs text-slate-400 mt-0.5 truncate">Yêu cầu bởi {entry.name}</p>
-                    </div>
-                    <div className="shrink-0 text-right">
-                      {entry.status === "filming" ? (
-                        <span className="flex items-center text-sky-600 text-xs font-semibold gap-1">
-                          <span className="ring-pulse w-1.5 h-1.5 rounded-full bg-sky-500 inline-block" />
-                          Đang quay
-                        </span>
-                      ) : entry.status === "completed" ? (
-                        <span className="flex items-center text-emerald-600 text-xs font-medium gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Xong
-                        </span>
-                      ) : (
-                        <span className="text-xs text-slate-400 font-medium">Chờ</span>
-                      )}
-                    </div>
+                    <p className="text-sm text-slate-700 font-medium">{step.label}</p>
                   </div>
                 ))}
               </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-16 text-center rounded-2xl border border-dashed border-slate-200 bg-white">
-                <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-3">
-                  <Plane className="w-7 h-7 text-slate-300" />
+            </div>
+
+            {/* Queue preview */}
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="font-bold text-slate-900 text-sm">Hàng chờ hiện tại</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">{queue?.length ?? 0} yêu cầu đang chờ</p>
                 </div>
-                <p className="font-medium text-slate-600 text-sm">Hàng chờ đang trống</p>
-                <p className="text-xs text-slate-400 mt-1">Hãy là người đầu tiên gửi yêu cầu!</p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-sky-600 text-xs gap-1 hover:bg-sky-50 rounded-xl h-8 px-3"
+                  onClick={() => setLocation("/queue")}
+                >
+                  Xem tất cả <ChevronRight className="w-3.5 h-3.5" />
+                </Button>
               </div>
-            )}
+
+              {queue && queue.length > 0 ? (
+                <div className="space-y-2">
+                  {queue.slice(0, 4).map((entry, i) => (
+                    <div
+                      key={entry.id}
+                      className={`flex items-center gap-3 p-3 rounded-2xl ${
+                        entry.status === "filming"
+                          ? "bg-sky-50 border border-sky-200"
+                          : "bg-slate-50 border border-slate-100"
+                      }`}
+                    >
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
+                        entry.status === "filming"
+                          ? "bg-sky-500 text-white"
+                          : "bg-white text-slate-500 border border-slate-200"
+                      }`}>
+                        {entry.status === "filming"
+                          ? <Plane className="w-3.5 h-3.5 animate-pulse" />
+                          : i + 1
+                        }
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-slate-800 truncate">{entry.locationName}</p>
+                        <p className="text-[11px] text-slate-400 truncate">{entry.name}</p>
+                      </div>
+                      {entry.status === "filming" && (
+                        <span className="flex items-center gap-1 text-sky-600 text-[11px] font-semibold shrink-0">
+                          <span className="ring-pulse w-1.5 h-1.5 rounded-full bg-sky-500 inline-block" />
+                          Live
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mb-2">
+                    <Plane className="w-5 h-5 text-slate-300" />
+                  </div>
+                  <p className="text-sm font-medium text-slate-500">Hàng chờ trống</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Hãy là người đầu tiên!</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
