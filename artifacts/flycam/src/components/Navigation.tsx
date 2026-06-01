@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { PlaneTakeoff, Activity, List } from "lucide-react";
 import { cn } from "@/lib/utils";
-import logoImg from "/logo.png";
+import logoImg from "/logo2.png";
 
 const navItems = [
   { href: "/",       label: "Yêu cầu quay",  icon: PlaneTakeoff },
