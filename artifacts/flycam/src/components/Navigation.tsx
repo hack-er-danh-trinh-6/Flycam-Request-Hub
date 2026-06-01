@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
-import { PlaneTakeoff, Activity, List, Map, Phone, Mail } from "lucide-react";
-import { FaTiktok } from "react-icons/fa6";
+import { PlaneTakeoff, Activity, List, Map } from "lucide-react";
+import { FaTiktok, FaPhone, FaEnvelope } from "react-icons/fa6";
 import { cn } from "@/lib/utils";
 import logoImg from "/logo2.png";
 import {
@@ -20,28 +20,31 @@ const contacts = [
   {
     label: "TikTok @trinz_fly",
     href: "https://tiktok.com/@trinz_fly",
-    icon: () => <FaTiktok className="w-4 h-4" />,
-    color: "hover:text-black hover:bg-black/5",
+    icon: FaTiktok,
+    bg: "bg-black",
+    text: "text-white",
   },
   {
     label: "Zalo: 0786 831 513",
     href: "https://zalo.me/0786831513",
-    icon: () => (
-      <span className="text-[11px] font-black leading-none tracking-tight">Z</span>
-    ),
-    color: "hover:text-blue-600 hover:bg-blue-50",
+    icon: null,
+    zaloText: true,
+    bg: "bg-[#0068FF]",
+    text: "text-white",
   },
   {
     label: "Gọi: 079 960 552",
     href: "tel:079960552",
-    icon: () => <Phone className="w-4 h-4" />,
-    color: "hover:text-emerald-600 hover:bg-emerald-50",
+    icon: FaPhone,
+    bg: "bg-emerald-500",
+    text: "text-white",
   },
   {
     label: "Email: trinz.ofc@gmail.com",
     href: "mailto:trinz.ofc@gmail.com",
-    icon: () => <Mail className="w-4 h-4" />,
-    color: "hover:text-orange-600 hover:bg-orange-50",
+    icon: FaEnvelope,
+    bg: "bg-orange-500",
+    text: "text-white",
   },
 ];
 
@@ -82,9 +85,9 @@ export function Navigation() {
           </div>
 
           {/* Contact icons */}
-          <div className="flex items-center gap-1 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0">
             {/* Divider — desktop only */}
-            <div className="hidden md:block w-px h-5 bg-slate-200 mr-1" />
+            <div className="hidden md:block w-px h-5 bg-slate-200 mr-0.5" />
 
             {contacts.map((c) => (
               <Tooltip key={c.href}>
@@ -94,14 +97,18 @@ export function Navigation() {
                     target={c.href.startsWith("http") ? "_blank" : undefined}
                     rel="noopener noreferrer"
                     className={cn(
-                      "flex items-center justify-center w-8 h-8 rounded-xl text-slate-400 transition-all duration-150",
-                      c.color
+                      "flex items-center justify-center w-8 h-8 rounded-xl shadow-sm transition-all duration-150 hover:scale-110 hover:shadow-md",
+                      c.bg, c.text
                     )}
                   >
-                    <c.icon />
+                    {"zaloText" in c && c.zaloText ? (
+                      <span className="text-[13px] font-black leading-none">Z</span>
+                    ) : (
+                      c.icon && <c.icon className="w-3.5 h-3.5" />
+                    )}
                   </a>
                 </TooltipTrigger>
-                <TooltipContent side="bottom" className="text-xs">
+                <TooltipContent side="bottom" className="text-xs font-medium">
                   {c.label}
                 </TooltipContent>
               </Tooltip>
