@@ -418,7 +418,7 @@ export default function Home() {
                           {isFilming && (
                             <span className="inline-flex items-center gap-1 text-orange-600 text-[11px] font-bold">
                               <span className="ring-pulse w-1.5 h-1.5 rounded-full bg-orange-500" />
-                              Live
+                              Đang quay
                             </span>
                           )}
                           {isCompleted && (
