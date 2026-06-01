@@ -33,8 +33,8 @@ const contacts = [
     text: "text-white",
   },
   {
-    label: "Gọi: 079 960 552",
-    href: "tel:079960552",
+    label: "Gọi: 079 9960 552",
+    href: "tel:0799960552",
     icon: FaPhone,
     bg: "bg-emerald-500",
     text: "text-white",
