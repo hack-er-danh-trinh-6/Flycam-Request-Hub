@@ -1,13 +1,48 @@
 import { Link, useLocation } from "wouter";
-import { PlaneTakeoff, Activity, List, Map } from "lucide-react";
+import { PlaneTakeoff, Activity, List, Map, Phone, Mail } from "lucide-react";
+import { FaTiktok } from "react-icons/fa6";
 import { cn } from "@/lib/utils";
 import logoImg from "/logo2.png";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const navItems = [
   { href: "/",        label: "Yêu cầu quay", icon: PlaneTakeoff },
   { href: "/status",  label: "Trạng thái",    icon: Activity },
   { href: "/queue",   label: "Hàng chờ",      icon: List },
   { href: "/map",     label: "Bản đồ",        icon: Map },
+];
+
+const contacts = [
+  {
+    label: "TikTok @trinz_fly",
+    href: "https://tiktok.com/@trinz_fly",
+    icon: () => <FaTiktok className="w-4 h-4" />,
+    color: "hover:text-black hover:bg-black/5",
+  },
+  {
+    label: "Zalo: 0786 831 513",
+    href: "https://zalo.me/0786831513",
+    icon: () => (
+      <span className="text-[11px] font-black leading-none tracking-tight">Z</span>
+    ),
+    color: "hover:text-blue-600 hover:bg-blue-50",
+  },
+  {
+    label: "Gọi: 079 960 552",
+    href: "tel:079960552",
+    icon: () => <Phone className="w-4 h-4" />,
+    color: "hover:text-emerald-600 hover:bg-emerald-50",
+  },
+  {
+    label: "Email: trinz.ofc@gmail.com",
+    href: "mailto:trinz.ofc@gmail.com",
+    icon: () => <Mail className="w-4 h-4" />,
+    color: "hover:text-orange-600 hover:bg-orange-50",
+  },
 ];
 
 export function Navigation() {
@@ -17,17 +52,15 @@ export function Navigation() {
     <>
       {/* Desktop top nav */}
       <nav className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-sm">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
+        <div className="container mx-auto flex h-16 items-center justify-between px-4 gap-2">
 
-          <Link href="/" className="flex items-center group">
-            <img
-              src={logoImg}
-              alt="FlyCam Logo"
-              className="h-10 w-auto object-contain"
-            />
+          {/* Logo */}
+          <Link href="/" className="flex items-center shrink-0">
+            <img src={logoImg} alt="FlyCam Logo" className="h-10 w-auto object-contain" />
           </Link>
 
-          <div className="hidden md:flex items-center gap-1">
+          {/* Nav links — desktop only */}
+          <div className="hidden md:flex items-center gap-1 flex-1 justify-center">
             {navItems.map(({ href, label, icon: Icon }) => {
               const active = location === href;
               return (
@@ -46,6 +79,33 @@ export function Navigation() {
                 </Link>
               );
             })}
+          </div>
+
+          {/* Contact icons */}
+          <div className="flex items-center gap-1 shrink-0">
+            {/* Divider — desktop only */}
+            <div className="hidden md:block w-px h-5 bg-slate-200 mr-1" />
+
+            {contacts.map((c) => (
+              <Tooltip key={c.href}>
+                <TooltipTrigger asChild>
+                  <a
+                    href={c.href}
+                    target={c.href.startsWith("http") ? "_blank" : undefined}
+                    rel="noopener noreferrer"
+                    className={cn(
+                      "flex items-center justify-center w-8 h-8 rounded-xl text-slate-400 transition-all duration-150",
+                      c.color
+                    )}
+                  >
+                    <c.icon />
+                  </a>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  {c.label}
+                </TooltipContent>
+              </Tooltip>
+            ))}
           </div>
         </div>
         <div className="h-px bg-gradient-to-r from-transparent via-orange-400/40 to-transparent" />
