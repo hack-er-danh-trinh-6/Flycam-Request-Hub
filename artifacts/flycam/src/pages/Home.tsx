@@ -18,7 +18,7 @@ import { useLocation } from "wouter";
 import {
   Plane, Activity, Clock, AlertTriangle, MapPin,
   LoaderCircle, PlaneTakeoff, ChevronRight, User, Mail,
-  ArrowRight, CheckCircle2,
+  ArrowRight, CheckCircle2, XCircle, Ban, Calendar,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { ApiError } from "@workspace/api-client-react";
@@ -336,11 +336,12 @@ export default function Home() {
             </div>
 
             {/* Queue preview */}
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-5">
-              <div className="flex items-center justify-between mb-4">
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 pt-5 pb-3">
                 <div>
                   <h3 className="font-bold text-slate-900 text-sm">Hàng chờ hiện tại</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">{queue?.length ?? 0} yêu cầu đang chờ</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{queue?.length ?? 0} yêu cầu</p>
                 </div>
                 <Button
                   variant="ghost"
@@ -353,46 +354,112 @@ export default function Home() {
               </div>
 
               {queue && queue.length > 0 ? (
-                <div className="space-y-2">
-                  {queue.slice(0, 4).map((entry, i) => (
-                    <div
-                      key={entry.id}
-                      className={`flex items-center gap-3 p-3 rounded-2xl ${
-                        entry.status === "filming"
-                          ? "bg-orange-50 border border-orange-200"
-                          : "bg-slate-50 border border-slate-100"
-                      }`}
-                    >
-                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
-                        entry.status === "filming"
-                          ? "bg-orange-500 text-white"
-                          : "bg-white text-slate-500 border border-slate-200"
-                      }`}>
-                        {entry.status === "filming"
-                          ? <Plane className="w-3.5 h-3.5 animate-pulse" />
-                          : i + 1
-                        }
+                <div className="divide-y divide-slate-100">
+                  {queue.slice(0, 5).map((entry, i) => {
+                    const isFilming = entry.status === "filming";
+                    const isCompleted = entry.status === "completed";
+                    const isCancelled = entry.status === "cancelled";
+                    const isRejected = entry.status === "rejected";
+                    const isPending = entry.status === "pending";
+
+                    const rankBg = isFilming
+                      ? "bg-orange-500 text-white"
+                      : isCompleted
+                      ? "bg-emerald-100 text-emerald-600"
+                      : isCancelled || isRejected
+                      ? "bg-slate-100 text-slate-400"
+                      : isPending
+                      ? "bg-amber-100 text-amber-600"
+                      : "bg-blue-100 text-blue-600";
+
+                    return (
+                      <div
+                        key={entry.id}
+                        className={`flex items-start gap-3 px-5 py-3.5 ${
+                          isFilming ? "bg-orange-50/60" : ""
+                        } ${isCancelled || isRejected ? "opacity-60" : ""}`}
+                      >
+                        {/* Rank icon */}
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 ${rankBg}`}>
+                          {isFilming ? (
+                            <Plane className="w-3.5 h-3.5 animate-pulse" />
+                          ) : isCompleted ? (
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                          ) : isCancelled ? (
+                            <Ban className="w-3.5 h-3.5" />
+                          ) : isRejected ? (
+                            <XCircle className="w-3.5 h-3.5" />
+                          ) : (
+                            i + 1
+                          )}
+                        </div>
+
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold text-slate-800 leading-snug line-clamp-1">
+                            {entry.locationName}
+                          </p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <User className="w-3 h-3 text-slate-400 shrink-0" />
+                            <p className="text-[11px] text-slate-500 truncate">{entry.name}</p>
+                          </div>
+                          {entry.scheduledAt && (
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <Calendar className="w-3 h-3 text-blue-400 shrink-0" />
+                              <p className="text-[11px] text-blue-500 font-medium">
+                                {new Date(entry.scheduledAt).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Status badge */}
+                        <div className="shrink-0 mt-0.5">
+                          {isFilming && (
+                            <span className="inline-flex items-center gap-1 text-orange-600 text-[11px] font-bold">
+                              <span className="ring-pulse w-1.5 h-1.5 rounded-full bg-orange-500" />
+                              Live
+                            </span>
+                          )}
+                          {isCompleted && (
+                            <span className="text-[11px] text-emerald-600 font-semibold">Xong</span>
+                          )}
+                          {entry.status === "approved" && (
+                            <span className="text-[11px] text-blue-500 font-semibold">Duyệt</span>
+                          )}
+                          {isPending && (
+                            <span className="text-[11px] text-amber-500 font-semibold">Chờ</span>
+                          )}
+                          {isCancelled && (
+                            <span className="text-[11px] text-slate-400 font-semibold">Hủy</span>
+                          )}
+                          {isRejected && (
+                            <span className="text-[11px] text-red-400 font-semibold">Từ chối</span>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-slate-800 truncate">{entry.locationName}</p>
-                        <p className="text-[11px] text-slate-400 truncate">{entry.name}</p>
-                      </div>
-                      {entry.status === "filming" && (
-                        <span className="flex items-center gap-1 text-orange-600 text-[11px] font-semibold shrink-0">
-                          <span className="ring-pulse w-1.5 h-1.5 rounded-full bg-orange-500 inline-block" />
-                          Live
-                        </span>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center py-8 text-center">
+                <div className="flex flex-col items-center justify-center py-8 text-center px-5">
                   <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mb-2">
                     <Plane className="w-5 h-5 text-slate-300" />
                   </div>
                   <p className="text-sm font-medium text-slate-500">Hàng chờ trống</p>
                   <p className="text-xs text-slate-400 mt-0.5">Hãy là người đầu tiên!</p>
+                </div>
+              )}
+
+              {/* Footer */}
+              {queue && queue.length > 5 && (
+                <div
+                  className="px-5 py-3 border-t border-slate-100 text-center cursor-pointer hover:bg-slate-50 transition-colors"
+                  onClick={() => setLocation("/queue")}
+                >
+                  <span className="text-xs text-orange-600 font-semibold">
+                    + {queue.length - 5} yêu cầu khác
+                  </span>
                 </div>
               )}
             </div>
