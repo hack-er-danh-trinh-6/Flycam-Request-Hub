@@ -1,14 +1,14 @@
 import { useGetQueue } from "@workspace/api-client-react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "@/lib/leaflet-fix";
-import { Video, MapPin, User, Calendar, Map } from "lucide-react";
+import { Video, MapPin, User, Calendar, Map, LocateFixed, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { useMemo } from "react";
+import { useMemo, useState, useCallback } from "react";
 
 const completedIcon = L.divIcon({
   className: "",
@@ -32,8 +32,90 @@ const completedIcon = L.divIcon({
   popupAnchor: [0, -38],
 });
 
+const myLocationIcon = L.divIcon({
+  className: "",
+  html: `<div style="
+    width:18px;height:18px;
+    background:#2563eb;
+    border-radius:50%;
+    border:3px solid white;
+    box-shadow:0 0 0 3px rgba(37,99,235,0.3), 0 2px 8px rgba(0,0,0,0.3);
+  "></div>`,
+  iconSize: [18, 18],
+  iconAnchor: [9, 9],
+  popupAnchor: [0, -12],
+});
+
+type LocateState = "idle" | "loading" | "found" | "error";
+
+interface LocationData {
+  lat: number;
+  lng: number;
+  accuracy: number;
+}
+
+function LocateControl({
+  location,
+  locateState,
+  onLocate,
+}: {
+  location: LocationData | null;
+  locateState: LocateState;
+  onLocate: () => void;
+}) {
+  const map = useMap();
+
+  const handleClick = useCallback(() => {
+    if (location) {
+      map.flyTo([location.lat, location.lng], 16, { animate: true, duration: 1.2 });
+    }
+    onLocate();
+  }, [map, location, onLocate]);
+
+  return (
+    <div className="leaflet-top leaflet-right" style={{ marginTop: 10, marginRight: 10 }}>
+      <div className="leaflet-control">
+        <button
+          onClick={handleClick}
+          title="Định vị vị trí của bạn"
+          style={{
+            width: 40,
+            height: 40,
+            background: locateState === "found" ? "#2563eb" : "white",
+            border: "2px solid rgba(0,0,0,0.2)",
+            borderRadius: 8,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+            color: locateState === "found" ? "white" : "#374151",
+          }}
+        >
+          {locateState === "loading" ? (
+            <Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} />
+          ) : (
+            <LocateFixed size={18} />
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function FlyToLocation({ location }: { location: LocationData | null }) {
+  const map = useMap();
+  if (location) {
+    map.flyTo([location.lat, location.lng], 16, { animate: true, duration: 1.2 });
+  }
+  return null;
+}
+
 export default function MapView() {
   const { data: queue, isLoading } = useGetQueue();
+  const [location, setLocation] = useState<LocationData | null>(null);
+  const [locateState, setLocateState] = useState<LocateState>("idle");
+  const [flyTo, setFlyTo] = useState(false);
 
   const completed = useMemo(
     () => (queue ?? []).filter((e) => e.status === "completed"),
@@ -46,6 +128,26 @@ export default function MapView() {
     const avgLng = completed.reduce((s, e) => s + e.longitude, 0) / completed.length;
     return [avgLat, avgLng] as [number, number];
   }, [completed]);
+
+  const handleLocate = useCallback(() => {
+    if (!navigator.geolocation) {
+      setLocateState("error");
+      return;
+    }
+    setLocateState("loading");
+    setFlyTo(false);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy });
+        setLocateState("found");
+        setFlyTo(true);
+      },
+      () => {
+        setLocateState("error");
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }, []);
 
   return (
     <div className="flex flex-col h-[calc(100vh-64px)] md:h-[calc(100vh-65px)]">
@@ -82,6 +184,12 @@ export default function MapView() {
         <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
           {/* Map */}
           <div className="flex-1 relative min-h-[300px]">
+            {locateState === "error" && (
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1001] bg-red-50 border border-red-200 text-red-700 text-xs px-3 py-2 rounded-xl shadow-sm">
+                Không thể lấy vị trí. Hãy cho phép truy cập vị trí.
+              </div>
+            )}
+
             <MapContainer
               center={center}
               zoom={completed.length ? 12 : 10}
@@ -94,6 +202,45 @@ export default function MapView() {
                 subdomains="0123"
                 maxZoom={20}
               />
+
+              {/* Locate control button */}
+              <LocateControl
+                location={location}
+                locateState={locateState}
+                onLocate={handleLocate}
+              />
+
+              {/* Fly to user location when first found */}
+              {flyTo && location && (
+                <FlyToLocation location={location} />
+              )}
+
+              {/* User location marker */}
+              {location && (
+                <>
+                  <Circle
+                    center={[location.lat, location.lng]}
+                    radius={location.accuracy}
+                    pathOptions={{ color: "#2563eb", fillColor: "#2563eb", fillOpacity: 0.1, weight: 1 }}
+                  />
+                  <Marker position={[location.lat, location.lng]} icon={myLocationIcon}>
+                    <Popup maxWidth={200}>
+                      <div className="text-center py-1">
+                        <div className="flex items-center justify-center gap-1.5 mb-1">
+                          <LocateFixed className="w-4 h-4 text-blue-600" />
+                          <span className="text-sm font-semibold text-slate-800">Vị trí của bạn</span>
+                        </div>
+                        <p className="text-xs text-slate-500">
+                          {location.lat.toFixed(5)}, {location.lng.toFixed(5)}
+                        </p>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          Độ chính xác: ~{Math.round(location.accuracy)}m
+                        </p>
+                      </div>
+                    </Popup>
+                  </Marker>
+                </>
+              )}
 
               {completed.map((entry) => (
                 <Marker
