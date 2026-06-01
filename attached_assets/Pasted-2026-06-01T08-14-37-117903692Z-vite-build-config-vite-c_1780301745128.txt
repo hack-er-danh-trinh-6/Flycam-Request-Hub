@@ -1,0 +1,50 @@
+2026-06-01T08:14:37.117903692Z > vite build --config vite.config.ts
+2026-06-01T08:14:37.117909382Z 
+2026-06-01T08:14:37.413185303Z vite v7.3.3 building client environment for production...
+2026-06-01T08:14:37.484865998Z transforming...
+2026-06-01T08:14:37.855169703Z src/components/ui/tooltip.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-06-01T08:14:38.394423467Z src/components/ui/label.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-06-01T08:14:41.687862971Z ✓ 2733 modules transformed.
+2026-06-01T08:14:42.104410932Z rendering chunks...
+2026-06-01T08:14:42.116337685Z computing gzip size...
+2026-06-01T08:14:42.143936658Z dist/public/index.html                   1.40 kB │ gzip:   0.55 kB
+2026-06-01T08:14:42.14397038Z dist/public/assets/index-LW-d4CoP.css  157.59 kB │ gzip:  32.15 kB
+2026-06-01T08:14:42.144011813Z dist/public/assets/index-GaVNyidw.js   996.22 kB │ gzip: 297.98 kB
+2026-06-01T08:14:42.144059637Z 
+2026-06-01T08:14:42.144067327Z (!) Some chunks are larger than 500 kB after minification. Consider:
+2026-06-01T08:14:42.144072178Z - Using dynamic import() to code-split the application
+2026-06-01T08:14:42.144076428Z - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+2026-06-01T08:14:42.144080538Z - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+2026-06-01T08:14:42.144254481Z ✓ built in 4.70s
+2026-06-01T08:14:43.022396873Z ==> Uploading build...
+2026-06-01T08:14:52.591960878Z ==> Uploaded in 5.8s. Compression took 3.7s
+2026-06-01T08:14:52.630835947Z ==> Build successful 🎉
+2026-06-01T08:14:55.636825514Z ==> Deploying...
+2026-06-01T08:14:55.849024992Z ==> Setting WEB_CONCURRENCY=1 by default, based on available CPUs in the instance
+2026-06-01T08:15:16.166194489Z     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+2026-06-01T08:15:16.166196679Z     at node:internal/main/run_main_module:33:47 {
+2026-06-01T08:15:16.166198839Z   code: 'MODULE_NOT_FOUND',
+2026-06-01T08:15:16.16620126Z   requireStack: []
+2026-06-01T08:15:16.16620345Z }
+2026-06-01T08:15:16.16726842Z 
+2026-06-01T08:15:16.1672758Z Node.js v24.14.1
+2026-06-01T08:15:26.678061663Z ==> Running 'node --enable-source-maps artifacts/api-server/dist/index.mjs'
+2026-06-01T08:15:26.974739242Z node:internal/modules/cjs/loader:1459
+2026-06-01T08:15:26.974753383Z   throw err;
+2026-06-01T08:15:26.974756283Z   ^
+2026-06-01T08:15:26.974758853Z 
+2026-06-01T08:15:26.974761823Z Error: Cannot find module '/opt/render/project/src/artifacts/api-server/dist/index.mjs'
+2026-06-01T08:15:26.974764744Z     at Module._resolveFilename (node:internal/modules/cjs/loader:1456:15)
+2026-06-01T08:15:26.974767353Z     at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+2026-06-01T08:15:26.974770054Z     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+2026-06-01T08:15:26.974774464Z     at Module._load (node:internal/modules/cjs/loader:1242:25)
+2026-06-01T08:15:26.974777054Z     at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+2026-06-01T08:15:26.974779624Z     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+2026-06-01T08:15:26.974782305Z     at node:internal/main/run_main_module:33:47 {
+2026-06-01T08:15:26.974785375Z   code: 'MODULE_NOT_FOUND',
+2026-06-01T08:15:26.974788275Z   requireStack: []
+2026-06-01T08:15:26.974790715Z }
+2026-06-01T08:15:26.974792825Z 
+2026-06-01T08:15:26.974795135Z Node.js v24.14.1
+2026-06-01T08:15:32.465811001Z ==> Exited with status 1
+2026-06-01T08:15:32.471040606Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
