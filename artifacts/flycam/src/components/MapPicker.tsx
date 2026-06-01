@@ -24,8 +24,8 @@ interface MapPickerProps {
   onLocationSelect: (sel: LocationSelection) => void;
 }
 
-const DEFAULT_CENTER: LatLngExpression = [9.9, 105.65];
-const DEFAULT_BOUNDS: LatLngBoundsLiteral = [[9.15, 104.75], [10.55, 106.25]];
+const DEFAULT_CENTER: LatLngExpression = [16.0, 106.0];
+const DEFAULT_BOUNDS: LatLngBoundsLiteral = [[8.0, 102.0], [23.5, 110.0]];
 
 const FALLBACK_ZONES = [
   { name: "Sân bay Quốc tế Cần Thơ", lat: 10.0853, lng: 105.7118, radius: 8000 },
@@ -257,8 +257,8 @@ export function MapPicker({ onLocationSelect }: MapPickerProps) {
       <div className="relative h-[400px] w-full rounded-md border overflow-hidden" style={{ touchAction: center ? "pan-x pan-y" : "none", isolation: "isolate" }}>
         <MapContainer
           center={mapCenter}
-          zoom={9}
-          minZoom={8}
+          zoom={6}
+          minZoom={5}
           maxZoom={21}
           maxBounds={bounds}
           maxBoundsViscosity={1.0}
