@@ -22,4 +22,20 @@ app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+
+  if (process.env["NODE_ENV"] === "production") {
+    const PING_INTERVAL_MS = 14 * 60 * 1000;
+    const selfUrl = `http://localhost:${port}/api/healthz`;
+
+    setInterval(async () => {
+      try {
+        const res = await fetch(selfUrl);
+        logger.info({ status: res.status }, "Self-ping OK");
+      } catch (pingErr) {
+        logger.warn({ err: pingErr }, "Self-ping failed");
+      }
+    }, PING_INTERVAL_MS);
+
+    logger.info({ intervalMinutes: 14 }, "Anti-spin-down self-ping enabled");
+  }
 });
