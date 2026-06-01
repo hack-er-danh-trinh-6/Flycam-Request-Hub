@@ -28,7 +28,7 @@ const contacts = [
     label: "Zalo: 0786 831 513",
     href: "https://zalo.me/0786831513",
     icon: null,
-    zaloText: true,
+    zaloSvg: true,
     bg: "bg-[#0068FF]",
     text: "text-white",
   },
@@ -101,8 +101,11 @@ export function Navigation() {
                       c.bg, c.text
                     )}
                   >
-                    {"zaloText" in c && c.zaloText ? (
-                      <span className="text-[13px] font-black leading-none">Z</span>
+                    {"zaloSvg" in c && c.zaloSvg ? (
+                      <svg viewBox="0 0 64 64" className="w-4 h-4" fill="white" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10.5 42.2c.6-1.4 1-2.9 1-4.5 0-2.2-.6-4.3-1.7-6.1C7.6 28 6.5 24 6.5 19.7 6.5 9.4 18.1 1 32 1s25.5 8.4 25.5 18.7c0 10.3-11.4 18.7-25.5 18.7-2.2 0-4.4-.3-6.4-.8l-.5-.1-.5.2-8.7 3.8 1.3-3.8.3-.5z"/>
+                        <path d="M21.3 24.6h10.3l-10.6 11h12.4v2.2H20.8v-1.8l10.5-11H21.3v-2.4zM37 24.4c1.3 0 2.3.4 3 1.3.7.8 1 2 1 3.5v8.6h-2.3v-8.3c0-.9-.2-1.6-.6-2.1-.4-.5-1-.7-1.7-.7-.9 0-1.6.3-2.1 1-.5.6-.8 1.6-.8 2.8v7.3H32v-13h2.2v1.5c.7-1.3 1.6-1.9 2.8-1.9z" fill="#0068FF"/>
+                      </svg>
                     ) : (
                       c.icon && <c.icon className="w-3.5 h-3.5" />
                     )}
