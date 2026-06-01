@@ -1,0 +1,50 @@
+2026-06-01T08:00:56.827734812Z ==> Checking out commit 73637906c0745f0656165216afb2dd03cc96dc20 in branch main
+2026-06-01T08:01:01.996442537Z ==> Downloaded 92MB in 2s. Extraction took 4s.
+2026-06-01T08:01:38.857970307Z ==> Using Node.js version 24.14.1 (default)
+2026-06-01T08:01:38.858003119Z ==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+2026-06-01T08:01:38.949564145Z ==> Running build command 'PORT=3000 BASE_PATH=/ npx pnpm@10 install && PORT=3000 BASE_PATH=/ npx pnpm@10 --filter @workspace/flycam run build'...
+2026-06-01T08:01:54.050355593Z 
+2026-06-01T08:01:54.050382615Z > @workspace/flycam@0.0.0 build /opt/render/project/src/artifacts/flycam
+2026-06-01T08:01:54.050388916Z > vite build --config vite.config.ts
+2026-06-01T08:01:54.050392766Z 
+2026-06-01T08:01:54.371333729Z vite v7.3.3 building client environment for production...
+2026-06-01T08:01:54.445467918Z transforming...
+2026-06-01T08:01:54.962453386Z src/components/ui/tooltip.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-06-01T08:01:55.597158078Z src/components/ui/label.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-06-01T08:01:59.637293872Z ✓ 2733 modules transformed.
+2026-06-01T08:02:00.271687162Z rendering chunks...
+2026-06-01T08:02:00.292755068Z computing gzip size...
+2026-06-01T08:02:00.343237547Z dist/public/index.html                   1.40 kB │ gzip:   0.55 kB
+2026-06-01T08:02:00.34327729Z dist/public/assets/index-LW-d4CoP.css  157.59 kB │ gzip:  32.15 kB
+2026-06-01T08:02:00.343306092Z dist/public/assets/index-GaVNyidw.js   996.22 kB │ gzip: 297.98 kB
+2026-06-01T08:02:00.343374207Z 
+2026-06-01T08:02:00.343383307Z (!) Some chunks are larger than 500 kB after minification. Consider:
+2026-06-01T08:02:00.343388798Z - Using dynamic import() to code-split the application
+2026-06-01T08:02:00.343395238Z - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+2026-06-01T08:02:00.343399918Z - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+2026-06-01T08:02:00.343577421Z ✓ built in 5.94s
+2026-06-01T08:02:08.012339519Z ==> Uploading build...
+2026-06-01T08:02:19.782615837Z ==> Uploaded in 6.3s. Compression took 5.5s
+2026-06-01T08:02:19.830875157Z ==> Build successful 🎉
+2026-06-01T08:02:27.659146133Z ==> Deploying...
+2026-06-01T08:02:27.889571175Z ==> Setting WEB_CONCURRENCY=1 by default, based on available CPUs in the instance
+2026-06-01T08:03:11.446176004Z ==> Running 'node --enable-source-maps artifacts/api-server/dist/index.mjs'
+2026-06-01T08:03:11.739095167Z node:internal/modules/cjs/loader:1459
+2026-06-01T08:03:11.739110907Z   throw err;
+2026-06-01T08:03:11.739114187Z   ^
+2026-06-01T08:03:11.739117527Z 
+2026-06-01T08:03:11.739121487Z Error: Cannot find module '/opt/render/project/src/artifacts/api-server/dist/index.mjs'
+2026-06-01T08:03:11.739125177Z     at Module._resolveFilename (node:internal/modules/cjs/loader:1456:15)
+2026-06-01T08:03:11.739128347Z     at defaultResolveImpl (node:internal/modules/cjs/loader:1066:19)
+2026-06-01T08:03:11.739131127Z     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1071:22)
+2026-06-01T08:03:11.739134438Z     at Module._load (node:internal/modules/cjs/loader:1242:25)
+2026-06-01T08:03:11.739137198Z     at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+2026-06-01T08:03:11.739140068Z     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+2026-06-01T08:03:11.739142798Z     at node:internal/main/run_main_module:33:47 {
+2026-06-01T08:03:11.739146108Z   code: 'MODULE_NOT_FOUND',
+2026-06-01T08:03:11.739149538Z   requireStack: []
+2026-06-01T08:03:11.739152598Z }
+2026-06-01T08:03:11.739155278Z 
+2026-06-01T08:03:11.739158098Z Node.js v24.14.1
+2026-06-01T08:03:14.510969435Z ==> Exited with status 1
+2026-06-01T08:03:14.528723182Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
