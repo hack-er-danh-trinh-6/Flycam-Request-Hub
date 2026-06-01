@@ -134,21 +134,21 @@ router.delete("/requests/mine", async (req, res): Promise<void> => {
 });
 
 router.get("/queue", async (_req, res): Promise<void> => {
-  // Chỉ hiển thị các yêu cầu đang hoạt động trong hàng đợi
-  const filmingRows = await db
+  const allRows = await db
     .select()
     .from(filmingRequestsTable)
-    .where(eq(filmingRequestsTable.status, "filming"))
     .orderBy(asc(filmingRequestsTable.queuePosition), asc(filmingRequestsTable.createdAt));
 
-  const approvedRows = await db
-    .select()
-    .from(filmingRequestsTable)
-    .where(eq(filmingRequestsTable.status, "approved"))
-    .orderBy(asc(filmingRequestsTable.queuePosition), asc(filmingRequestsTable.createdAt));
+  const statusOrder: Record<string, number> = {
+    filming: 0,
+    approved: 1,
+    pending: 2,
+    completed: 3,
+    rejected: 4,
+    cancelled: 5,
+  };
 
-  // Đang quay đứng đầu, tiếp theo là đã duyệt theo thứ tự queuePosition
-  const allRows = [...filmingRows, ...approvedRows];
+  allRows.sort((a, b) => (statusOrder[a.status] ?? 99) - (statusOrder[b.status] ?? 99));
 
   const result = allRows.map((r) => ({
     id: r.id,
@@ -156,7 +156,7 @@ router.get("/queue", async (_req, res): Promise<void> => {
     locationName: r.locationName,
     latitude: r.latitude,
     longitude: r.longitude,
-    status: r.status as "approved" | "filming",
+    status: r.status,
     queuePosition: r.queuePosition ?? null,
     scheduledAt: r.scheduledAt ? r.scheduledAt.toISOString() : null,
     videoUrl: r.videoUrl ?? null,

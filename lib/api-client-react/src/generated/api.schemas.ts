@@ -82,8 +82,12 @@ export type QueueEntryStatus = typeof QueueEntryStatus[keyof typeof QueueEntrySt
 
 
 export const QueueEntryStatus = {
+  pending: 'pending',
   approved: 'approved',
   filming: 'filming',
+  completed: 'completed',
+  rejected: 'rejected',
+  cancelled: 'cancelled',
 } as const;
 
 export interface QueueEntry {
