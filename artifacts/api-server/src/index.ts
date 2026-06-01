@@ -25,17 +25,21 @@ app.listen(port, (err) => {
 
   if (process.env["NODE_ENV"] === "production") {
     const PING_INTERVAL_MS = 14 * 60 * 1000;
-    const selfUrl = `http://localhost:${port}/api/healthz`;
+
+    const externalUrl = process.env["RENDER_EXTERNAL_URL"];
+    const pingUrl = externalUrl
+      ? `${externalUrl}/api/healthz`
+      : `http://localhost:${port}/api/healthz`;
+
+    logger.info({ pingUrl, intervalMinutes: 14 }, "Anti-spin-down self-ping enabled");
 
     setInterval(async () => {
       try {
-        const res = await fetch(selfUrl);
+        const res = await fetch(pingUrl);
         logger.info({ status: res.status }, "Self-ping OK");
       } catch (pingErr) {
         logger.warn({ err: pingErr }, "Self-ping failed");
       }
     }, PING_INTERVAL_MS);
-
-    logger.info({ intervalMinutes: 14 }, "Anti-spin-down self-ping enabled");
   }
 });
