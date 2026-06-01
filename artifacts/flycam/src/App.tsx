@@ -7,6 +7,7 @@ import Home from "@/pages/Home";
 import Status from "@/pages/Status";
 import Queue from "@/pages/Queue";
 import Admin from "@/pages/Admin";
+import MapView from "@/pages/MapView";
 import { Navigation } from "@/components/Navigation";
 
 const queryClient = new QueryClient();
@@ -18,6 +19,7 @@ function Router() {
       <Route path="/status" component={Status} />
       <Route path="/queue" component={Queue} />
       <Route path="/admin" component={Admin} />
+      <Route path="/map" component={MapView} />
       <Route component={NotFound} />
     </Switch>
   );

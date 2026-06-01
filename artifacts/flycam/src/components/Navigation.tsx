@@ -1,12 +1,13 @@
 import { Link, useLocation } from "wouter";
-import { PlaneTakeoff, Activity, List } from "lucide-react";
+import { PlaneTakeoff, Activity, List, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logoImg from "/logo2.png";
 
 const navItems = [
-  { href: "/",       label: "Yêu cầu quay",  icon: PlaneTakeoff },
-  { href: "/status", label: "Trạng thái",     icon: Activity },
-  { href: "/queue",  label: "Hàng chờ",       icon: List },
+  { href: "/",        label: "Yêu cầu quay", icon: PlaneTakeoff },
+  { href: "/status",  label: "Trạng thái",    icon: Activity },
+  { href: "/queue",   label: "Hàng chờ",      icon: List },
+  { href: "/map",     label: "Bản đồ",        icon: Map },
 ];
 
 export function Navigation() {
