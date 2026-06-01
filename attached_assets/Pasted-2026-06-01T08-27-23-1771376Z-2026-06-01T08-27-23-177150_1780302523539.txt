@@ -1,0 +1,50 @@
+2026-06-01T08:27:23.1771376Z 
+2026-06-01T08:27:23.177150821Z (!) Some chunks are larger than 500 kB after minification. Consider:
+2026-06-01T08:27:23.177156221Z - Using dynamic import() to code-split the application
+2026-06-01T08:27:23.177160731Z - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+2026-06-01T08:27:23.177164651Z - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+2026-06-01T08:27:23.177466008Z ✓ built in 4.96s
+2026-06-01T08:27:24.33727766Z 
+2026-06-01T08:27:24.337307Z > @workspace/api-server@0.0.0 build /opt/render/project/src/artifacts/api-server
+2026-06-01T08:27:24.337312571Z > node ./build.mjs
+2026-06-01T08:27:24.3373169Z 
+2026-06-01T08:27:24.795753194Z 
+2026-06-01T08:27:24.795777794Z   dist/index.mjs                       2.2mb ⚠️
+2026-06-01T08:27:24.795783225Z   dist/pino-worker.mjs               153.4kb
+2026-06-01T08:27:24.795787225Z   dist/pino-file.mjs                 142.1kb
+2026-06-01T08:27:24.795791095Z   dist/pino-pretty.mjs               114.6kb
+2026-06-01T08:27:24.795795275Z   dist/thread-stream-worker.mjs        7.3kb
+2026-06-01T08:27:24.795799045Z   dist/index.mjs.map                   3.7mb
+2026-06-01T08:27:24.795803285Z   dist/pino-worker.mjs.map           256.9kb
+2026-06-01T08:27:24.795807175Z   dist/pino-file.mjs.map             229.0kb
+2026-06-01T08:27:24.795810955Z   dist/pino-pretty.mjs.map           204.0kb
+2026-06-01T08:27:24.795814735Z   dist/thread-stream-worker.mjs.map   12.0kb
+2026-06-01T08:27:24.795828935Z 
+2026-06-01T08:27:24.795832176Z ⚡ Done in 406ms
+2026-06-01T08:27:25.947935614Z ==> Uploading build...
+2026-06-01T08:27:35.009305723Z ==> Uploaded in 5.2s. Compression took 3.9s
+2026-06-01T08:27:35.042625503Z ==> Build successful 🎉
+2026-06-01T08:27:38.854880878Z ==> Deploying...
+2026-06-01T08:27:39.116063899Z ==> Setting WEB_CONCURRENCY=1 by default, based on available CPUs in the instance
+2026-06-01T08:28:20.190936846Z ==> Running 'node --enable-source-maps artifacts/api-server/dist/index.mjs'
+2026-06-01T08:28:22.690386935Z /opt/render/project/src/node_modules/.pnpm/path-to-regexp@8.4.2/node_modules/path-to-regexp/src/index.ts:218
+2026-06-01T08:28:22.690411616Z           throw new PathError(`Missing parameter name at index ${index}`, str);
+2026-06-01T08:28:22.690415685Z                 ^
+2026-06-01T08:28:22.690418656Z 
+2026-06-01T08:28:22.690421776Z PathError [TypeError]: Missing parameter name at index 1: *; visit https://git.new/pathToRegexpError for info
+2026-06-01T08:28:22.690425486Z     at consumeUntil (/opt/render/project/src/node_modules/.pnpm/path-to-regexp@8.4.2/node_modules/path-to-regexp/src/index.ts:218:17)
+2026-06-01T08:28:22.690428926Z     at parse (/opt/render/project/src/node_modules/.pnpm/path-to-regexp@8.4.2/node_modules/path-to-regexp/src/index.ts:262:24)
+2026-06-01T08:28:22.690432016Z     at process (/opt/render/project/src/node_modules/.pnpm/path-to-regexp@8.4.2/node_modules/path-to-regexp/src/index.ts:466:52)
+2026-06-01T08:28:22.690434816Z     at pathToRegexp (/opt/render/project/src/node_modules/.pnpm/path-to-regexp@8.4.2/node_modules/path-to-regexp/src/index.ts:478:3)
+2026-06-01T08:28:22.690437896Z     at Object.match (/opt/render/project/src/node_modules/.pnpm/path-to-regexp@8.4.2/node_modules/path-to-regexp/src/index.ts:416:28)
+2026-06-01T08:28:22.690440866Z     at matcher (/opt/render/project/src/node_modules/.pnpm/router@2.2.0/node_modules/router/lib/layer.js:86:23)
+2026-06-01T08:28:22.690443796Z     at new Layer (/opt/render/project/src/node_modules/.pnpm/router@2.2.0/node_modules/router/lib/layer.js:93:62)
+2026-06-01T08:28:22.690446666Z     at router7.route (/opt/render/project/src/node_modules/.pnpm/router@2.2.0/node_modules/router/index.js:428:17)
+2026-06-01T08:28:22.690449336Z     at app2.route (/opt/render/project/src/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:257:22)
+2026-06-01T08:28:22.690451566Z     at app2.app2.<computed> (/opt/render/project/src/node_modules/.pnpm/express@5.2.1/node_modules/express/lib/application.js:478:22) {
+2026-06-01T08:28:22.690454157Z   originalPath: '*'
+2026-06-01T08:28:22.690456517Z }
+2026-06-01T08:28:22.690458737Z 
+2026-06-01T08:28:22.690460986Z Node.js v24.14.1
+2026-06-01T08:28:24.679400603Z ==> Exited with status 1
+2026-06-01T08:28:24.682396438Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys

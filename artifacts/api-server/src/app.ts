@@ -39,7 +39,7 @@ const frontendDist = path.resolve(__dirname, "../../flycam/dist/public");
 
 if (existsSync(frontendDist)) {
   app.use(express.static(frontendDist));
-  app.get("*", (_req: Request, res: Response) => {
+  app.get("/*splat", (_req: Request, res: Response) => {
     res.sendFile(path.join(frontendDist, "index.html"));
   });
 }
