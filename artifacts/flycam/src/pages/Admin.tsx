@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   useAdminListRequests,
   useAdminApproveRequest,
@@ -25,7 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
-import { MapPin, User, Mail, Clock, Check, X, Plane, Video, Lock, LogOut, Trash2, Ban, PlayCircle } from "lucide-react";
+import { MapPin, User, Mail, Clock, Check, X, Plane, Video, Lock, LogOut, Trash2, Ban, PlayCircle, Wrench } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
@@ -207,11 +207,49 @@ function MapConfigTab() {
 type StatusTab = "pending" | "approved" | "filming" | "completed" | "rejected" | "cancelled" | "all";
 type AdminSection = "requests" | "mapconfig";
 
+function useMaintenance() {
+  const [maintenance, setMaintenance] = useState<boolean | null>(null);
+  const [toggling, setToggling] = useState(false);
+  const { toast } = useToast();
+
+  const fetchMaintenance = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/maintenance");
+      const data = await res.json() as { maintenance: boolean };
+      setMaintenance(data.maintenance);
+    } catch {}
+  }, []);
+
+  useEffect(() => { void fetchMaintenance(); }, [fetchMaintenance]);
+
+  const toggle = async () => {
+    if (maintenance === null) return;
+    setToggling(true);
+    try {
+      const res = await fetch("/api/admin/maintenance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled: !maintenance }),
+      });
+      const data = await res.json() as { maintenance: boolean };
+      setMaintenance(data.maintenance);
+      toast({ title: data.maintenance ? "Đã bật chế độ bảo trì" : "Đã tắt chế độ bảo trì" });
+    } catch {
+      toast({ title: "Lỗi khi thay đổi trạng thái", variant: "destructive" });
+    } finally {
+      setToggling(false);
+    }
+  };
+
+  return { maintenance, toggling, toggle };
+}
+
 function AdminPanel({ onLogout }: { onLogout: () => void }) {
   const [section, setSection] = useState<AdminSection>("requests");
   const [activeTab, setActiveTab] = useState<StatusTab>("pending");
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { maintenance, toggling, toggle } = useMaintenance();
 
   const { data: requests, isLoading } = useAdminListRequests(
     activeTab !== "all" ? { status: activeTab } : {}
@@ -294,9 +332,20 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
           <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
           <p className="text-muted-foreground">Quản lý yêu cầu flycam và lịch bay.</p>
         </div>
-        <Button variant="ghost" size="sm" onClick={onLogout} data-testid="button-admin-logout">
-          <LogOut className="w-4 h-4 mr-2" /> Đăng xuất
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant={maintenance ? "destructive" : "outline"}
+            size="sm"
+            onClick={toggle}
+            disabled={toggling || maintenance === null}
+          >
+            <Wrench className="w-4 h-4 mr-2" />
+            {maintenance ? "Đang bảo trì — Tắt" : "Bật bảo trì"}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onLogout} data-testid="button-admin-logout">
+            <LogOut className="w-4 h-4 mr-2" /> Đăng xuất
+          </Button>
+        </div>
       </div>
 
       {/* Top-level section switcher */}
