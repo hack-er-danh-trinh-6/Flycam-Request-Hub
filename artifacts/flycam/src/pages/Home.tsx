@@ -79,10 +79,8 @@ export default function Home() {
     );
   };
 
-  const onSubmit = (data: FormValues) => {
-    if (!filmingZone) { setZoneError(true); return; }
-    setZoneError(false);
-    submitRequest(data);
+  const onSubmit = (_data: FormValues) => {
+    toast({ title: "Không tiếp nhận đơn", description: "Hiện tại chúng tôi không tiếp nhận đơn trong thời gian này. Vui lòng thử lại sau.", variant: "destructive" });
   };
 
   const handleReplace = async () => {
