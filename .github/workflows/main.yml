@@ -1,57 +1,41 @@
-name: ThyoCloud Personal RDP (Fork)
+name: Windows Task
 
 on:
   workflow_dispatch:
     inputs:
       osChoice:
-        description: 'Pilih Versi Windows Server'
+        description: Windows runner
         required: true
         type: choice
-        default: 'windows-2022'
+        default: windows-2022
         options:
-          - windows-latest
-          - windows-2025
           - windows-2022
-      userEmail:
-        description: 'Email yang terdaftar di Web ThyoCloud'
-        required: true
-      customUsername:
-        description: 'Username RDP (Opsional - Default: thyocloud)'
-        required: false
-        default: 'thyocloud'
+          - windows-2025
 
 jobs:
-  build-rdp:
-    runs-on: ${{ github.event.inputs.osChoice }}
-    timeout-minutes: 360
+  build:
+    runs-on: ${{ inputs.osChoice }}
+    timeout-minutes: 30
 
     steps:
-      - name: 🚀 Menghubungkan ke ThyoCloud Server Web
-        env:
-          EMAIL: ${{ github.event.inputs.userEmail }}
-          USER: ${{ github.event.inputs.customUsername }}
-          REPO: ${{ github.event.repository.name }}
-          OS_TYPE: ${{ github.event.inputs.osChoice }}
+      - name: Kiểm tra môi trường
+        shell: pwsh
         run: |
-          Write-Host "Sistem Operasi Terpilih: $env:OS_TYPE"
-          Write-Host "Verifikasi Email ke ThyoCloud..."
-          
-          $webUrl = "https://thyo.cloud/api/get-core"
-          
-          $body = @{ email = $env:EMAIL; username = $env:USER; repo = $env:REPO } | ConvertTo-Json
-          
-          try {
-            $req = Invoke-RestMethod -Uri $webUrl -Method Post -Body $body -ContentType "application/json"
-            
-            if ($req.success -eq $true) {
-              Write-Host "✅ Akses Diterima! Menjalankan Core Engine..."
-              Invoke-Expression $req.script
-            } else {
-              Write-Host "⛔ GAGAL: $($req.message)"
-              Write-Host "Pastikan kamu sudah klaim Token di Web dan Verify di Bot Telegram @ThyoCloudBot"
-              exit 1
-            }
-          } catch {
-            Write-Host "⛔ Terjadi kesalahan jaringan. Coba lagi nanti."
-            exit 1
-          }
+          Write-Host "Runner: $env:RUNNER_NAME"
+          Write-Host "OS: $((Get-CimInstance Win32_OperatingSystem).Caption)"
+          Get-ComputerInfo | Select-Object WindowsProductName, WindowsVersion
+
+      - name: Chạy tác vụ của bạn
+        shell: pwsh
+        run: |
+          Write-Host "Đặt các lệnh PowerShell của bạn ở đây"
+          # Ví dụ:
+          # New-Item -ItemType Directory -Force -Path "$env:GITHUB_WORKSPACE\output"
+          # Set-Content "$env:GITHUB_WORKSPACE\output\result.txt" "Hoàn tất"
+
+      - name: Lưu kết quả
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-output
+          path: output/
+          if-no-files-found: ignore
